@@ -4,25 +4,25 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-  } from "@/components/ui/dialog"
-  import { Button } from "@/components/ui/button"
-  import { Info } from "lucide-react"
-  import { Agent } from "@/types/agent"
-  import { ScrollArea } from "@/components/ui/scroll-area"
+  } from "@/components/ui/dialog";
+  import { Button } from "@/components/ui/button";
+  import { Info } from "lucide-react";
+  import { Agent } from "@/types/agent";
+  import { ScrollArea } from "@/components/ui/scroll-area";
+  
+  // A utility function to format the value for display (safely checks the type of the value)
+  const formatValue = (value: unknown): string => {
+    if (typeof value === 'object' && value !== null) {
+      return JSON.stringify(value, null, 2);
+    }
+    return String(value); // safely convert any non-object value to string
+  };
   
   interface MetadataDialogProps {
     agent: Agent;
   }
   
   export function MetadataDialog({ agent }: MetadataDialogProps) {
-    // Function to format metadata for display
-    const formatValue = (value: any): string => {
-      if (typeof value === 'object' && value !== null) {
-        return JSON.stringify(value, null, 2);
-      }
-      return String(value);
-    };
-  
     return (
       <Dialog>
         <DialogTrigger asChild>
@@ -102,5 +102,6 @@ import {
           </ScrollArea>
         </DialogContent>
       </Dialog>
-    )
+    );
   }
+  

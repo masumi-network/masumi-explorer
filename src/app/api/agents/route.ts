@@ -1,10 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Agent, AssetListItem } from "@/types/agent";
 
 const BLOCKFROST_API_KEY = 'preprodhrtK1nyhYpdtYRKQjmUDxpgGqzY7uyEq';
 const POLICY_ID = '97caadc87d40ed22ccd07db3f062c1d3b534a7a9c7534e9aa8857121';
 const BASE_URL = 'https://cardano-preprod.blockfrost.io/api/v0';
 const RESULTS_PER_PAGE = 100;  // Blockfrost maximum
+
+// Custom error type for handling API errors
+class BlockfrostError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BlockfrostError";
+  }
+}
 
 async function blockfrostFetch<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
   const queryParams = new URLSearchParams(params).toString();
@@ -21,7 +29,7 @@ async function blockfrostFetch<T>(endpoint: string, params: Record<string, strin
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(`Blockfrost API error: ${error.message || response.statusText}`);
+    throw new BlockfrostError(`Blockfrost API error: ${error.message || response.statusText}`);
   }
 
   return response.json();
@@ -66,11 +74,13 @@ async function getAllAssets(): Promise<{ total: number; active: number; assets: 
   };
 }
 
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const limit = searchParams.get('limit');
+export const dynamic = 'force-dynamic'; // This is important!
 
+export async function GET(request: NextRequest) {
+    try {
+      const searchParams = request.nextUrl.searchParams;
+      const limit = searchParams.get('limit');
+    
     // Get all assets and stats
     const { total, active, assets } = await getAllAssets();
     
@@ -99,13 +109,20 @@ export async function GET(request: Request) {
       activeAgents: active,
       agents: filteredAgents,
     });
-  } catch (error: any) {
-    console.error('Error fetching agents:', error);
-    return NextResponse.json({ 
-      error: 'Failed to fetch agents',
-      details: error.message,
-    }, { 
-      status: 500 
-    });
+  } catch (error) {
+    // Handle the error in a more specific way, using the custom BlockfrostError type
+    if (error instanceof BlockfrostError) {
+      console.error('Blockfrost API error:', error.message);
+      return NextResponse.json({
+        error: 'Blockfrost API error',
+        details: error.message,
+      }, { status: 500 });
+    } else {
+      console.error('Unknown error fetching agents:', error);
+      return NextResponse.json({
+        error: 'Failed to fetch agents',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      }, { status: 500 });
+    }
   }
 }

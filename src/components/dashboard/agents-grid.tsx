@@ -1,15 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { AgentCard } from "./agent-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { Agent } from "@/types/agent";
@@ -33,6 +27,17 @@ export function AgentsGrid({ limit, onStatsUpdate }: AgentsGridProps) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
+  // Safely handle the case where onStatsUpdate might be undefined
+  const memoizedOnStatsUpdate = useCallback(
+    (total: number, active: number) => {
+      // Only call onStatsUpdate if it exists
+      if (onStatsUpdate) {
+        onStatsUpdate(total, active);
+      }
+    },
+    [onStatsUpdate] // Depend on the onStatsUpdate function
+  );
+
   // Fetch data only once on component mount or when limit changes
   useEffect(() => {
     let mounted = true;
@@ -42,18 +47,18 @@ export function AgentsGrid({ limit, onStatsUpdate }: AgentsGridProps) {
         setLoading(true);
         const url = limit ? `/api/agents?limit=${limit}` : '/api/agents';
         const response = await fetch(url);
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch agents');
         }
-        
+
         const responseData = await response.json();
-        
+
         if (mounted) {
           setData(responseData);
           // Only update stats if the data is valid
-          if (onStatsUpdate && typeof responseData.totalAgents === 'number') {
-            onStatsUpdate(responseData.totalAgents, responseData.activeAgents);
+          if (memoizedOnStatsUpdate && typeof responseData.totalAgents === 'number') {
+            memoizedOnStatsUpdate(responseData.totalAgents, responseData.activeAgents);
           }
         }
       } catch (err) {
@@ -74,7 +79,7 @@ export function AgentsGrid({ limit, onStatsUpdate }: AgentsGridProps) {
     return () => {
       mounted = false;
     };
-  }, [limit]); // Only depend on limit
+  }, [limit, memoizedOnStatsUpdate]); // Now we depend on memoizedOnStatsUpdate
 
   const filteredAgents = useMemo(() => {
     if (!data?.agents) return [];
@@ -82,11 +87,11 @@ export function AgentsGrid({ limit, onStatsUpdate }: AgentsGridProps) {
     return data.agents
       .filter((agent) => {
         if (!searchTerm) return true;
-        
+
         const searchableText = [
           agent.onchain_metadata?.name,
           agent.onchain_metadata?.description,
-          agent.asset
+          agent.asset,
         ]
           .filter(Boolean)
           .join(" ")
@@ -172,7 +177,7 @@ export function AgentsGrid({ limit, onStatsUpdate }: AgentsGridProps) {
           <div className="mb-4 text-sm text-muted-foreground">
             Showing {filteredAgents.length} {limit ? 'latest' : ''} agents
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAgents.map((agent) => (
               <AgentCard key={agent.asset} agent={agent} />

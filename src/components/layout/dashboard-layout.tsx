@@ -1,48 +1,47 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
 import {
   LayoutDashboard,
   CircuitBoard,
   History,
-  Settings,
   Menu,
   X,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
-} from "@/components/ui/sheet"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import Link from "next/link"
+} from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import Link from "next/link";
 
+// Removed unused imports (cn and Settings)
 interface DashboardLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 const sidebarItems = [
-    {
-      title: "Dashboard",
-      href: "/",
-      icon: LayoutDashboard,
-    },
-    {
-      title: "AI Agents",
-      href: "/agents",
-      icon: CircuitBoard,
-    },
-    {
-      title: "History",
-      href: "/history",
-      icon: History,
-    }
-  ];
+  {
+    title: "Dashboard",
+    href: "/",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "AI Agents",
+    href: "/agents",
+    icon: CircuitBoard,
+  },
+  {
+    title: "History",
+    href: "/history",
+    icon: History,
+  },
+];
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen">
@@ -113,5 +112,5 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex-1 px-6 py-8">{children}</div>
       </main>
     </div>
-  )
+  );
 }

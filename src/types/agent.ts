@@ -17,10 +17,17 @@ export interface OnChainMetadata {
     initial_mint_tx_hash: string;
     mint_or_burn_count: number;
     onchain_metadata: OnChainMetadata | null;
-    metadata: any | null;
+    // Replace 'any' with 'unknown' or a more specific type if possible
+    metadata: unknown | null;  // Use 'unknown' to ensure safety when working with the metadata
   }
   
   export interface AssetListItem {
     asset: string;
     quantity: string;
   }
+  
+  export interface AgentFilters {
+    search: string;
+    status: string;
+    type: string;
+  }  

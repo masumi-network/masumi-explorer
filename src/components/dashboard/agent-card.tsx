@@ -7,8 +7,7 @@ import {
     CardFooter,
   } from "@/components/ui/card";
   import { Badge } from "@/components/ui/badge";
-  import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-  import { Button } from "@/components/ui/button";
+  import { Avatar, AvatarFallback } from "@/components/ui/avatar";
   import { ExternalLink } from "lucide-react";
   import { type Agent } from "@/types/agent";
   import { MetadataDialog } from "./metadata-dialog"
@@ -16,7 +15,7 @@ import {
   // Add this constant
   const CARDANOSCAN_PREPROD_URL = "https://preprod.cardanoscan.io/token";
   
-  interface AgentCardProps {
+  interface AgentCardProps { 
     agent: Agent;
     className?: string;
   }
