@@ -88,6 +88,7 @@ export async function GET(request: NextRequest) {
     const assetsToProcess = limit 
       ? assets.slice(0, parseInt(limit))
       : assets;
+
       
 
     // Get details for each asset
