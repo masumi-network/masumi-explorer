@@ -1,11 +1,12 @@
 export interface OnChainMetadata {
-    name: string;
-    api_url: string;
-    description: string;
-    company_name: string;
-    capability_name: string;
-    capability_version: string;
-    capability_description: string;
+    name?: string;
+    api_url?: string;
+    description?: string;
+    company_name?: string;
+    capability_name?: string;
+    capability_version?: string;
+    capability_description?: string;
+    [key: string]: string | undefined;
   }
   
   export interface Agent {
@@ -16,9 +17,8 @@ export interface OnChainMetadata {
     quantity: string;
     initial_mint_tx_hash: string;
     mint_or_burn_count: number;
-    onchain_metadata: OnChainMetadata | null;
-    // Replace 'any' with 'unknown' or a more specific type if possible
-    metadata: unknown | null;  // Use 'unknown' to ensure safety when working with the metadata
+    onchain_metadata?: OnChainMetadata;
+    metadata?: Record<string, unknown>;
   }
   
   export interface AssetListItem {
@@ -26,8 +26,14 @@ export interface OnChainMetadata {
     quantity: string;
   }
   
+  export interface AgentsResponse {
+    totalAgents: number;
+    activeAgents: number;
+    agents: Agent[];
+  }
+  
   export interface AgentFilters {
     search: string;
     status: string;
     type: string;
-  }  
+  }

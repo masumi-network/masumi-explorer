@@ -1,18 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { AgentCard } from "./agent-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Search, SlidersHorizontal } from "lucide-react";
-import { Agent } from "@/types/agent";
-
-interface AgentsResponse {
-  totalAgents: number;
-  activeAgents: number;
-  agents: Agent[];
-}
+import { AgentsResponse } from "@/types/agent";
 
 interface AgentsGridProps {
   limit?: number | null;
@@ -27,59 +21,46 @@ export function AgentsGrid({ limit, onStatsUpdate }: AgentsGridProps) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
-  // Safely handle the case where onStatsUpdate might be undefined
-  const memoizedOnStatsUpdate = useCallback(
-    (total: number, active: number) => {
-      // Only call onStatsUpdate if it exists
-      if (onStatsUpdate) {
-        onStatsUpdate(total, active);
-      }
-    },
-    [onStatsUpdate] // Depend on the onStatsUpdate function
-  );
-
-  // Fetch data only once on component mount or when limit changes
   useEffect(() => {
-    let mounted = true;
+    const abortController = new AbortController();
 
-    async function loadAgents() {
+    async function fetchData() {
       try {
-        setLoading(true);
         const url = limit ? `/api/agents?limit=${limit}` : '/api/agents';
-        const response = await fetch(url);
+        const response = await fetch(url, {
+          signal: abortController.signal
+        });
 
         if (!response.ok) {
           throw new Error('Failed to fetch agents');
         }
 
         const responseData = await response.json();
+        setData(responseData);
 
-        if (mounted) {
-          setData(responseData);
-          // Only update stats if the data is valid
-          if (memoizedOnStatsUpdate && typeof responseData.totalAgents === 'number') {
-            memoizedOnStatsUpdate(responseData.totalAgents, responseData.activeAgents);
-          }
+        if (onStatsUpdate && typeof responseData.totalAgents === 'number') {
+          onStatsUpdate(responseData.totalAgents, responseData.activeAgents);
         }
-      } catch (err) {
-        console.error("Error loading agents:", err);
-        if (mounted) {
-          setError("Failed to load AI agents");
+      } catch (error: unknown) {
+        // Type guard for DOMException (which includes AbortError)
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
         }
+        
+        // Log the error safely
+        console.error("Error loading agents:", error instanceof Error ? error.message : 'Unknown error');
+        setError("Failed to load AI agents");
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 
-    loadAgents();
+    fetchData();
 
-    // Cleanup function to prevent updates if component unmounts
     return () => {
-      mounted = false;
+      abortController.abort();
     };
-  }, [limit, memoizedOnStatsUpdate]); // Now we depend on memoizedOnStatsUpdate
+  }, [limit, onStatsUpdate]);
 
   const filteredAgents = useMemo(() => {
     if (!data?.agents) return [];

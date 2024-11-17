@@ -10,7 +10,7 @@ import {
   Activity,
   ArrowRight
 } from "lucide-react"
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 export default function Home() {
   const [stats, setStats] = useState({
@@ -18,13 +18,10 @@ export default function Home() {
     activeAgents: 0
   });
 
-  // Function to update stats that we'll pass to AgentsGrid
-  const updateStats = (total: number, active: number) => {
-    setStats({
-      totalAgents: total,
-      activeAgents: active
-    });
-  };
+  // Memoize the stats update callback
+  const handleStatsUpdate = useCallback((total: number, active: number) => {
+    setStats({ totalAgents: total, activeAgents: active });
+  }, []); // Empty dependency array since this function never needs to change
 
   return (
     <DashboardLayout>
@@ -60,7 +57,7 @@ export default function Home() {
         <CardContent>
           <AgentsGrid 
             limit={20} 
-            onStatsUpdate={updateStats}  // Add this prop
+            onStatsUpdate={handleStatsUpdate}
           />
           <div className="mt-6 text-center">
             <Link href="/agents">

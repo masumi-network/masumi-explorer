@@ -14,10 +14,9 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-// Removed unused imports (cn and Settings)
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -40,6 +39,27 @@ const sidebarItems = [
   },
 ];
 
+function SidebarContent({ onClick }: { onClick?: () => void }) {
+  const pathname = usePathname();
+
+  return (
+    <nav className="flex flex-col gap-2">
+      {sidebarItems.map((item) => (
+        <Link key={item.href} href={item.href} onClick={onClick}>
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-2"
+            data-active={pathname === item.href}
+          >
+            <item.icon className="h-4 w-4" />
+            {item.title}
+          </Button>
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -50,21 +70,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="p-6">
           <h1 className="text-2xl font-bold text-[#f60045]">Masumi</h1>
         </div>
-        <ScrollArea className="flex-1 px-4">
-          <nav className="flex flex-col gap-2">
-            {sidebarItems.map((item) => (
-              <Link key={item.href} href={item.href}>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-2"
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.title}
-                </Button>
-              </Link>
-            ))}
-          </nav>
-        </ScrollArea>
+        <div className="flex-1 px-4 overflow-auto">
+          <SidebarContent />
+        </div>
       </aside>
 
       {/* Mobile Sidebar */}
@@ -89,21 +97,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <X className="h-5 w-5" />
             </Button>
           </div>
-          <ScrollArea className="px-4">
-            <nav className="flex flex-col gap-2">
-              {sidebarItems.map((item) => (
-                <Link key={item.href} href={item.href} onClick={() => setIsOpen(false)}>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-2"
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.title}
-                  </Button>
-                </Link>
-              ))}
-            </nav>
-          </ScrollArea>
+          <div className="px-4 overflow-auto">
+            <SidebarContent onClick={() => setIsOpen(false)} />
+          </div>
         </SheetContent>
       </Sheet>
 
