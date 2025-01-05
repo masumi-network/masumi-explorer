@@ -1,39 +1,23 @@
-import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
+const BLOCKFROST_PROJECT_ID = 'preprodhrtK1nyhYpdtYRKQjmUDxpgGqzY7uyEq';
 
-const api = new BlockFrostAPI({
-  projectId: process.env.NEXT_PUBLIC_BLOCKFROST_PROJECT_ID || 'preprodD813pPbW5SjD3oa6HbNVcy72eDJTsxgF',
-  network: 'preprod'
-});
+export const BLOCKFROST_CONFIG = {
+  url: 'https://cardano-preprod.blockfrost.io/api/v0',
+  projectId: BLOCKFROST_PROJECT_ID,
+  policyId: "c7842ba56912a2df2f2e1b89f8e11751c6ec2318520f4d312423a272"
+} as const;
 
-const POLICY_ID = '97caadc87d40ed22ccd07db3f062c1d3b534a7a9c7534e9aa8857121';
+export async function fetchFromBlockfrost(endpoint: string) {
+  const response = await fetch(`${BLOCKFROST_CONFIG.url}${endpoint}`, {
+    headers: {
+      'project_id': BLOCKFROST_CONFIG.projectId,
+      'Content-Type': 'application/json',
+    }
+  });
 
-export async function getAgents() {
-  try {
-    // Get all assets under the policy ID
-    const assets = await api.assetsPolicyById(POLICY_ID);
-    console.log('Found assets:', assets);
-
-    // Get detailed information for each asset
-    const agentsDetails = await Promise.all(
-      assets.map(async (asset) => {
-        try {
-          const details = await api.assetsById(asset.asset);
-          console.log('Asset details:', details);
-          return {
-            ...details,
-            assetId: asset.asset,
-            quantity: asset.quantity,
-          };
-        } catch (error) {
-          console.error(`Error fetching details for asset ${asset.asset}:`, error);
-          return null;
-        }
-      })
-    );
-
-    return agentsDetails.filter(agent => agent !== null);
-  } catch (error) {
-    console.error('Error fetching agents:', error);
-    throw error;
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+    throw new Error(error.message || `HTTP error! status: ${response.status}`);
   }
-}
+
+  return response.json();
+} 
