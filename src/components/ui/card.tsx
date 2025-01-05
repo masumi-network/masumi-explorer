@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -8,7 +10,10 @@ const Card = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("shadow border border-border rounded-2xl", className)}
+    className={cn(
+      "bg-[#0A0A0A] border border-[#1F1F1F] rounded-xl shadow-sm",
+      className
+    )}
     {...props}
   />
 ));

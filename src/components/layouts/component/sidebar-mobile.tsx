@@ -25,42 +25,39 @@ export default function SidebarMobile() {
           <Menu className="h-6 w-6" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-64 p-0 bg-zinc-950 border-zinc-800">
-        <div className="p-6 border-b border-zinc-800">
-          <Image
-            src="/kodosumi_logo.svg"
-            alt="Kodosumi"
-            width={119}
-            height={32}
-            priority
-          />
-        </div>
+      <SheetContent side="left" className="w-72 p-0 bg-[#0A0A0A] border-r border-[#1F1F1F]">
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="p-6">
+            <Link href="/" className="flex items-center gap-2">
+              <Image src="/kodosumi_logo.svg" alt="Logo" width={32} height={32} />
+              <span className="font-semibold text-lg">Masumi</span>
+            </Link>
+          </div>
 
-        {/* Section Label */}
-        <div className="px-6 py-6">
-          <p className="text-xs text-zinc-500">Menu</p>
+          {/* Navigation */}
+          <div className="flex-1 px-3">
+            <nav className="space-y-1">
+              {menuItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "group flex items-center px-3 py-2 text-sm font-medium rounded-md",
+                      isActive 
+                        ? "bg-zinc-800/40 text-white" 
+                        : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/40"
+                    )}
+                  >
+                    {item.title}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
         </div>
-
-        {/* Main Navigation */}
-        <nav className="flex-1 px-3 space-y-1">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium",
-                  isActive 
-                    ? "bg-emerald-500/10 text-emerald-500" 
-                    : "text-zinc-400 hover:bg-zinc-900/40 hover:text-zinc-100"
-                )}
-              >
-                {item.title}
-              </Link>
-            );
-          })}
-        </nav>
       </SheetContent>
     </Sheet>
   );

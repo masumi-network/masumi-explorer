@@ -7,9 +7,10 @@ import AveragePositions from "@/components/dashboard/analytics/average-positions
 import LatestPayments from "@/components/dashboard/transactions/latest-payments";
 import LatestRegistrations from "@/components/dashboard/transactions/latest-registrations";
 
-export default function Page() {
+export default function Home() {
   return (
     <div>
+      {/* Header Section */}
       <div className="flex flex-col gap-4 mb-7">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-zinc-100">Dashboard</h1>
@@ -30,12 +31,27 @@ export default function Page() {
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-7">
-        <AveragePositions className="col-span-12 lg:col-span-4" />
-        <Analytics className="col-span-12 lg:col-span-8" />
-        <TopAgents className="col-span-12" />
-        <LatestPayments className="col-span-12 lg:col-span-6" />
-        <LatestRegistrations className="col-span-12 lg:col-span-6" />
+      {/* Charts Section */}
+      <div className="grid grid-cols-12 gap-6 mb-6">
+        <div className="col-span-12 lg:col-span-5">
+          <AveragePositions />
+        </div>
+        <div className="col-span-12 lg:col-span-7">
+          <Analytics />
+        </div>
+      </div>
+
+      {/* Lists Section */}
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-12 lg:col-span-6">
+          <TopAgents />
+        </div>
+        <div className="col-span-12 lg:col-span-6">
+          <div className="space-y-6">
+            <LatestPayments />
+            <LatestRegistrations />
+          </div>
+        </div>
       </div>
     </div>
   );

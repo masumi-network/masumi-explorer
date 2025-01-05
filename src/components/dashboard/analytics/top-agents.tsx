@@ -13,8 +13,9 @@ import { Button } from "@/components/ui/button";
 import { MoreHorizontal, ExternalLink, MessageSquare, ArrowRight, ExternalLinkIcon, Check, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { fetchFromBlockfrost, BLOCKFROST_CONFIG } from "@/lib/blockfrost";
-import { validateMetadata } from "@/lib/metadata-validator";
+import { fetchFromBlockfrost } from "@/lib/blockfrost";
+import { useNetwork } from "@/context/network-context";
+import { Card } from "@/components/ui/card";
 
 interface Agent {
   asset: string;
@@ -31,97 +32,62 @@ export default function TopAgents({ className, ...props }: any) {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { config } = useNetwork();
 
-  useEffect(() => {
-    const fetchAgents = async () => {
-      try {
-        setLoading(true);
-        
-        // Get initial list of assets
-        const data = await fetchFromBlockfrost(`/assets/policy/${BLOCKFROST_CONFIG.policyId}`);
-        
-        // Process in batches to avoid too many concurrent requests
-        const batchSize = 5;
-        const agents = [];
-        
-        for (let i = 0; i < data.length; i += batchSize) {
-          const batch = data.slice(i, i + batchSize);
-          const batchResults = await Promise.all(
-            batch.map(async (asset: any) => {
-              try {
-                const assetDetails = await fetchFromBlockfrost(`/assets/${asset.asset}`);
-                
-                // Only fetch tx details if metadata is valid
-                if (validateMetadata(assetDetails.onchain_metadata)) {
-                  const txDetails = await fetchFromBlockfrost(
-                    `/txs/${assetDetails.initial_mint_tx_hash}`
-                  );
-                  
-                  return {
-                    ...asset,
-                    onchain_metadata: assetDetails.onchain_metadata,
-                    minted_at: txDetails.block_time * 1000
-                  };
-                }
-                return null;
-              } catch (error) {
-                console.warn(`Failed to fetch details for asset ${asset.asset}:`, error);
-                return null;
-              }
-            })
+  const fetchAgents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Add logging to debug the response
+      console.log('Fetching assets for policy:', config.policyId);
+      const assets = await fetchFromBlockfrost(
+        `/assets/policy/${config.policyId}`,
+        config
+      );
+      console.log('Assets response:', assets);
+
+      // Process in batches
+      const processedAgents = await Promise.all(
+        assets.map(async (asset: any) => {
+          const assetDetails = await fetchFromBlockfrost(
+            `/assets/${asset.asset}`,
+            config
+          );
+          console.log('Asset details:', assetDetails);
+
+          const txDetails = await fetchFromBlockfrost(
+            `/txs/${assetDetails.initial_mint_tx_hash}`,
+            config
           );
           
-          agents.push(...batchResults.filter(Boolean));
-          
-          // If we have enough valid agents, stop fetching
-          if (agents.length >= 10) break;
-          
-          // Add a small delay between batches
-          if (i + batchSize < data.length) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-          }
-        }
+          return {
+            asset: asset.asset,
+            name: assetDetails.onchain_metadata?.name || 'Unnamed Agent',
+            description: assetDetails.onchain_metadata?.description || 'No description available',
+            authorName: assetDetails.onchain_metadata?.author?.name || 'Unknown Author',
+            registeredAt: new Date(txDetails.block_time * 1000).toLocaleDateString(),
+            requests: Math.floor(Math.random() * 20000) + 5000,
+            identityVerified: assetDetails.onchain_metadata?.identity_verified || false,
+            metadataCorrect: true,
+          };
+        })
+      );
 
-        // Sort and take the latest 10
-        const validAgents = agents
-          .sort((a, b) => b.minted_at - a.minted_at)
-          .slice(0, 10);
-        
-        const transformedAgents = validAgents.map((asset: any) => ({
-          asset: asset.asset,
-          name: asset.onchain_metadata?.name || 'Unnamed Agent',
-          description: asset.onchain_metadata?.description || 'No description available',
-          authorName: asset.onchain_metadata?.author?.name || 'Unknown Author',
-          registeredAt: new Date(asset.minted_at).toLocaleDateString(),
-          requests: Math.floor(Math.random() * 20000) + 5000,
-          identityVerified: asset.onchain_metadata?.identity_verified || false,
-          metadataCorrect: true,
-        }));
+      setAgents(processedAgents);
+    } catch (error) {
+      console.error('Top Agents Error:', error);
+      setError('Failed to fetch agents');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setAgents(transformedAgents);
-      } catch (err) {
-        console.error('Error fetching agents:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch agents');
-        // Fall back to placeholder data
-        setAgents([
-          {
-            asset: "asset1...",
-            name: "BetterAI Assistant",
-            description: "Advanced AI Assistant for general tasks",
-            authorName: "Masumi Labs",
-            registeredAt: "2024-01-20",
-            requests: 12350,
-            identityVerified: false,
-            metadataCorrect: false,
-          }
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAgents();
-  }, []);
+  useEffect(() => {
+    if (config.blockfrostApiKey) {
+      fetchAgents();
+    }
+  }, [config]);
 
   if (loading) {
     return (
@@ -140,94 +106,75 @@ export default function TopAgents({ className, ...props }: any) {
   }
 
   return (
-    <div className={cn("shadow border border-border rounded-2xl", className)} {...props}>
-      <div className="p-6 pb-2 flex items-start justify-between">
-        <div>
-          <h2 className="text-lg font-medium mb-2">Latest AI Agents</h2>
-          <p className="text-sm text-muted-foreground">Recently registered agents on the network</p>
+    <Card className={className}>
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-lg font-medium text-white">Latest AI Agents</h2>
+            <p className="text-sm text-[#71717A]">Recently registered agents on the network</p>
+          </div>
+          <Link href="/agents">
+            <Button variant="ghost" size="sm" className="gap-2 text-[#71717A] hover:text-white">
+              View All
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </Link>
         </div>
-        <Link href="/agents">
-          <Button variant="ghost" size="sm" className="gap-2">
-            View All
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        </Link>
-      </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[400px] pl-6">AGENT</TableHead>
-            <TableHead>AUTHOR</TableHead>
-            <TableHead className="text-center">REGISTERED</TableHead>
-            <TableHead className="text-center">IDENTITY</TableHead>
-            <TableHead className="text-center">METADATA</TableHead>
-            <TableHead className="text-right pr-6">ACTIONS</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {agents.map((agent) => (
-            <TableRow key={agent.asset}>
-              <TableCell className="pl-6">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium">{agent.name}</p>
-                    <Link 
-                      href={`https://preprod.cardanoscan.io/token/${agent.asset}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-primary"
-                    >
-                      <ExternalLinkIcon className="w-3 h-3" />
-                    </Link>
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{agent.description}</p>
-                </div>
-              </TableCell>
-              <TableCell>{agent.authorName}</TableCell>
-              <TableCell className="text-center">{agent.registeredAt}</TableCell>
-              <TableCell className="text-center">
-                {agent.identityVerified ? (
-                  <div className="flex items-center justify-center text-green-500">
-                    <Check className="w-4 h-4" />
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center text-red-500">
-                    <X className="w-4 h-4" />
-                  </div>
-                )}
-              </TableCell>
-              <TableCell className="text-center">
-                {agent.metadataCorrect ? (
-                  <div className="flex items-center justify-center text-green-500">
-                    <Check className="w-4 h-4" />
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center text-red-500">
-                    <X className="w-4 h-4" />
-                  </div>
-                )}
-              </TableCell>
-              <TableCell className="text-right pr-6">
-                <div className="flex items-center justify-end gap-2">
-                  <Link href={`/agents/${agent.asset}`}>
-                    <Button variant="ghost" size="sm">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Details
+        <div className="overflow-auto h-[400px] -mx-6">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[400px] pl-6 bg-[#0A0A0A] sticky top-0">AGENT</TableHead>
+                <TableHead className="bg-[#0A0A0A] sticky top-0">AUTHOR</TableHead>
+                <TableHead className="text-center bg-[#0A0A0A] sticky top-0">REGISTERED</TableHead>
+                <TableHead className="text-center bg-[#0A0A0A] sticky top-0">IDENTITY</TableHead>
+                <TableHead className="w-[50px] bg-[#0A0A0A] sticky top-0"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {agents.map((agent) => (
+                <TableRow key={agent.asset}>
+                  <TableCell className="pl-6">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-white">{agent.name}</p>
+                        <Link 
+                          href={`https://preprod.cardanoscan.io/token/${agent.asset}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#71717A] hover:text-white"
+                        >
+                          <ExternalLinkIcon className="w-3 h-3" />
+                        </Link>
+                      </div>
+                      <p className="text-sm text-[#71717A] line-clamp-2">{agent.description}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-[#71717A]">{agent.authorName}</TableCell>
+                  <TableCell className="text-center text-[#71717A]">{agent.registeredAt}</TableCell>
+                  <TableCell className="text-center">
+                    {agent.identityVerified ? (
+                      <div className="flex items-center justify-center text-emerald-500">
+                        <Check className="w-4 h-4" />
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center text-red-500">
+                        <X className="w-4 h-4" />
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right pr-6">
+                    <Button variant="ghost" size="sm" className="text-[#71717A] hover:text-white">
+                      <MoreHorizontal className="h-4 w-4" />
                     </Button>
-                  </Link>
-                  <Link href={`/agents/${agent.asset}/interact`}>
-                    <Button variant="default" size="sm">
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Interact
-                    </Button>
-                  </Link>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </Card>
   );
 } 

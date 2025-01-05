@@ -18,9 +18,14 @@ const menuItems = [
 interface SidebarDesktopProps {
   isCollapsed: boolean;
   onCollapsedChange: (collapsed: boolean) => void;
+  footer?: React.ReactNode;
 }
 
-export default function SidebarDesktop({ isCollapsed, onCollapsedChange }: SidebarDesktopProps) {
+export default function SidebarDesktop({ 
+  isCollapsed, 
+  onCollapsedChange,
+  footer
+}: SidebarDesktopProps) {
   const pathname = usePathname();
 
   return (
@@ -88,6 +93,8 @@ export default function SidebarDesktop({ isCollapsed, onCollapsedChange }: Sideb
           </nav>
         </>
       )}
+
+      {footer}
     </div>
   );
 }

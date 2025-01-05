@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { CONTRACTS } from "@/config/contracts";
+import { useNetwork } from "@/context/network-context";
+import { StatsBox } from "@/components/dashboard/analytics/stats-box";
 
 interface Props {
   className?: string;
@@ -36,18 +38,28 @@ export default function AgentRegistrations({ className }: Props) {
   const [data, setData] = useState<DailyRegistrations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { config } = useNetwork();
 
   const fetchRegistrations = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const assets = await fetchFromBlockfrost(`/assets/policy/${CONTRACTS.POLICY_ID}`);
+      const response = await fetchFromBlockfrost(
+        `/assets/policy/${config.policyId}`,
+        config
+      );
 
       const mintTxs = await Promise.all(
-        assets.map(async (asset: any) => {
-          const assetDetails = await fetchFromBlockfrost(`/assets/${asset.asset}`);
-          const tx = await fetchFromBlockfrost(`/txs/${assetDetails.initial_mint_tx_hash}`);
+        response.map(async (asset: any) => {
+          const assetDetails = await fetchFromBlockfrost(
+            `/assets/${asset.asset}`,
+            config
+          );
+          const tx = await fetchFromBlockfrost(
+            `/txs/${assetDetails.initial_mint_tx_hash}`,
+            config
+          );
           return {
             timestamp: tx.block_time * 1000
           };
@@ -77,7 +89,7 @@ export default function AgentRegistrations({ className }: Props) {
 
       setData(dailyCounts);
     } catch (error) {
-      console.error('Error fetching registrations:', error);
+      console.error('Error:', error);
       setError('Failed to fetch registration data');
     } finally {
       setLoading(false);
@@ -85,8 +97,10 @@ export default function AgentRegistrations({ className }: Props) {
   };
 
   useEffect(() => {
-    fetchRegistrations();
-  }, []);
+    if (config.blockfrostApiKey) {
+      fetchRegistrations();
+    }
+  }, [config]);
 
   if (loading) {
     return (
@@ -120,53 +134,66 @@ export default function AgentRegistrations({ className }: Props) {
   }
 
   return (
-    <Card className={`p-6 ${className}`}>
-      <div className="mb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-semibold">Daily Registrations</h3>
-            <p className="text-xs text-muted-foreground">New agent registrations over the last 7 days</p>
+    <div>
+      <Card className="p-6 mb-6">
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-medium text-zinc-100">Daily Registrations</h2>
+              <p className="text-sm text-zinc-500">New agent registrations over the last 7 days</p>
+            </div>
+            <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-300">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
           </div>
-          <Button variant="ghost" size="icon" onClick={fetchRegistrations}>
-            <RefreshCw className="h-4 w-4" />
-          </Button>
         </div>
-      </div>
-      <div className="h-[180px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart 
-            data={data}
-            margin={{ top: 5, right: 10, bottom: 20, left: 0 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
-            <XAxis
-              dataKey="date"
-              stroke="#888888"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              dy={10}
-            />
-            <YAxis
-              stroke="#888888"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `${value}`}
-              domain={[0, 'dataMax + 1']}
-              width={25}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar
-              dataKey="registrations"
-              fill="currentColor"
-              radius={[4, 4, 0, 0]}
-              className="fill-primary"
-              maxBarSize={32}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </Card>
+        <div className="h-[200px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart 
+              data={data}
+              margin={{ top: 5, right: 10, bottom: 20, left: 35 }}
+            >
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke="#27272a"
+                vertical={false} 
+              />
+              <XAxis
+                dataKey="date"
+                stroke="#52525b"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                dy={10}
+              />
+              <YAxis
+                stroke="#52525b"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `${value}`}
+                domain={[0, 'dataMax + 1']}
+                width={35}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar
+                dataKey="registrations"
+                fill="#22c55e"
+                radius={[4, 4, 0, 0]}
+                maxBarSize={32}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+
+      <StatsBox
+        title="Total Revenue"
+        subtitle="Lorem ipsum"
+        value="65.89%"
+        change={-23.46}
+        info="with Node 23"
+      />
+    </div>
   );
 }

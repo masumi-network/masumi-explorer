@@ -8,6 +8,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { CONTRACTS } from "@/config/contracts";
+import { useNetwork } from "@/context/network-context";
+import { cn } from "@/lib/utils";
+import { StatsBox } from "@/components/dashboard/analytics/stats-box";
 
 interface Props {
   className?: string;
@@ -40,31 +43,25 @@ export default function Analytics({ className }: Props) {
   const [data, setData] = useState<DailyTransactions[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { config } = useNetwork();
 
   const fetchTransactionHistory = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Get transactions from the payment script address
-      const scriptUtxos = await fetchFromBlockfrost(
-        `/addresses/${CONTRACTS.PAYMENT_SCRIPT}/utxos`
+      console.log('Fetching transactions for address:', config.contractAddress);
+      const transactions = await fetchFromBlockfrost(
+        `/addresses/${config.contractAddress}/transactions`,
+        config
       );
-
-      const txs = await Promise.all(
-        scriptUtxos.map(async (utxo: any) => {
-          const tx = await fetchFromBlockfrost(`/txs/${utxo.tx_hash}`);
-          return {
-            timestamp: tx.block_time * 1000,
-            amount: utxo.amount.find((a: any) => a.unit === 'lovelace')?.quantity || 0
-          };
-        })
-      );
+      console.log('Transaction response:', transactions);
 
       // Group by day for the last 30 days
       const now = Date.now();
       const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
       
+      // Initialize daily counts
       const dailyCounts = Array.from({ length: 30 }, (_, i) => {
         const date = new Date(now - (i * 24 * 60 * 60 * 1000));
         const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -75,20 +72,39 @@ export default function Analytics({ className }: Props) {
         };
       }).reverse();
 
+      // Process each transaction
+      const processedTxs = await Promise.all(
+        transactions.map(async (tx: any) => {
+          const txDetails = await fetchFromBlockfrost(`/txs/${tx.tx_hash}/utxos`, config);
+          console.log('Transaction details:', txDetails);
+          
+          const output = txDetails.outputs.find((out: any) => 
+            out.address === config.contractAddress
+          );
+          
+          return {
+            timestamp: tx.block_time * 1000,
+            amount: output?.amount.find((a: any) => a.unit === 'lovelace')?.quantity || 0
+          };
+        })
+      );
+
       // Count transactions and sum volume per day
-      txs.forEach(tx => {
+      processedTxs.forEach(tx => {
         if (tx.timestamp >= thirtyDaysAgo) {
           const dayIndex = 29 - Math.floor((now - tx.timestamp) / (24 * 60 * 60 * 1000));
           if (dayIndex >= 0 && dayIndex < 30) {
             dailyCounts[dayIndex].transactions++;
-            dailyCounts[dayIndex].volume += parseInt(tx.amount);
+            dailyCounts[dayIndex].volume += parseInt(tx.amount.toString());
           }
         }
       });
 
+      console.log('Processed daily counts:', dailyCounts);
       setData(dailyCounts);
+
     } catch (error) {
-      console.error('Error fetching transactions:', error);
+      console.error('Transaction History Error:', error);
       setError('Failed to fetch transaction data');
     } finally {
       setLoading(false);
@@ -96,8 +112,10 @@ export default function Analytics({ className }: Props) {
   };
 
   useEffect(() => {
-    fetchTransactionHistory();
-  }, []);
+    if (config.blockfrostApiKey) {
+      fetchTransactionHistory();
+    }
+  }, [config]);
 
   if (loading) {
     return (
@@ -131,78 +149,103 @@ export default function Analytics({ className }: Props) {
   }
 
   return (
-    <Card className={`p-6 ${className}`}>
-      <div className="mb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-semibold">Transaction History</h3>
-            <p className="text-xs text-muted-foreground">Transaction volume over the last 30 days</p>
+    <div>
+      <Card className="p-6 mb-6">
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-medium text-white">Transaction History</h2>
+              <p className="text-sm text-[#71717A]">Transaction volume over the last 30 days</p>
+            </div>
+            <Button variant="ghost" size="icon" className="text-[#71717A] hover:text-white">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
           </div>
-          <Button variant="ghost" size="icon" onClick={fetchTransactionHistory}>
-            <RefreshCw className="h-4 w-4" />
-          </Button>
         </div>
+        <div className="h-[200px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart 
+              data={data}
+              margin={{ top: 5, right: 35, bottom: 20, left: 35 }}
+            >
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke="#1F1F1F"
+                horizontal={true} 
+                vertical={true}
+              />
+              <XAxis
+                dataKey="date"
+                stroke="#71717A"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                dy={10}
+              />
+              <YAxis
+                stroke="#71717A"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `${value}`}
+                domain={[0, 'auto']}
+                width={35}
+                yAxisId="transactions"
+              />
+              <YAxis
+                stroke="#71717A"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `${(value / 1000000).toFixed(0)}k`}
+                domain={[0, 'auto']}
+                width={35}
+                orientation="right"
+                yAxisId="volume"
+              />
+              <Tooltip 
+                content={<CustomTooltip />}
+                cursor={{ stroke: '#1F1F1F', strokeWidth: 1, strokeDasharray: '3 3' }}
+              />
+              <Line
+                type="monotone"
+                dataKey="transactions"
+                stroke="#22c55e"
+                strokeWidth={2}
+                dot={false}
+                yAxisId="transactions"
+                activeDot={{ r: 4, fill: "#22c55e" }}
+              />
+              <Line
+                type="monotone"
+                dataKey="volume"
+                stroke="#0ea5e9"
+                strokeWidth={2}
+                dot={false}
+                yAxisId="volume"
+                activeDot={{ r: 4, fill: "#0ea5e9" }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+      
+      <div className="grid grid-cols-2 gap-6">
+        <StatsBox
+          title="Total Revenue"
+          subtitle="Lorem ipsum"
+          value="$3,345.12"
+          change={23.46}
+          info="with Node 23"
+        />
+        <StatsBox
+          title="Total Revenue"
+          subtitle="Lorem ipsum"
+          value="$1,345.12"
+          change={-2.65}
+          info="with Node 23"
+        />
       </div>
-      <div className="h-[180px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart 
-            data={data}
-            margin={{ top: 5, right: 35, bottom: 20, left: 0 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={true} vertical={false} />
-            <XAxis
-              dataKey="date"
-              stroke="#888888"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              dy={10}
-              interval={3}
-              tickMargin={8}
-            />
-            <YAxis
-              stroke="#888888"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `${value}`}
-              domain={[0, 'auto']}
-              width={20}
-              yAxisId="transactions"
-              tickCount={5}
-            />
-            <YAxis
-              stroke="#888888"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `${(value / 1000000).toFixed(0)}₳`}
-              domain={[0, 'auto']}
-              width={35}
-              orientation="right"
-              yAxisId="volume"
-              tickCount={5}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Line
-              type="monotone"
-              dataKey="transactions"
-              stroke="hsl(var(--primary))"
-              strokeWidth={1.5}
-              dot={false}
-              yAxisId="transactions"
-            />
-            <Line
-              type="monotone"
-              dataKey="volume"
-              stroke="hsl(var(--primary)/.5)"
-              strokeWidth={1.5}
-              dot={false}
-              yAxisId="volume"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </Card>
+    </div>
   );
 }
