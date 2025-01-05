@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Starter Next.js TypeScript
 
+Start a new project on Next.js. This starter template consists of a connect wallet button and wallet integration.
+      
 ## Getting Started
 
-First, run the development server:
+Start project locally using CLI:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npx meshjs app-name
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+### [APIs](https://meshjs.dev/apis)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+From wallet integrations to transaction builders, Mesh makes Web3 development easy with reliable, scalable, and well-engineered APIs & developer tools.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### [Guides](https://meshjs.dev/guides)
 
-## Deploy on Vercel
+Whether you are new to web development or a seasoned blockchain full-stack developer, these guides will help you get started.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### [Smart Contracts](https://meshjs.dev/smart-contracts)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open-source smart contracts, complete with documentation, live demos, and end-to-end source code.
+
+### [React components and hooks](https://meshjs.dev/react)
+
+Frontend components for wallet connections, and useful React hooks to getting wallet states - Mesh provides everything you need to bring your Web3 user interface to life.
+
+## Connect with us
+
+Give a star on our [GitHub](https://meshjs.dev/go/github) to stay up to date with our latest developments.
+
+Follow us on [Twitter](https://meshjs.dev/go/twitter) for updates.
+
+Join our [Discord](https://meshjs.dev/go/discord) for any questions and suggestions.

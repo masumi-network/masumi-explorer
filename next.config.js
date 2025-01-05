@@ -1,21 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: true,
-    swcMinify: true,
-    images: {
-      domains: ['ipfs.io', 'gateway.pinata.cloud'],
-    },
-    async headers() {
-      return [
-        {
-          source: '/api/:path*',
-          headers: [
-            { key: 'Access-Control-Allow-Origin', value: '*' },
-            { key: 'Access-Control-Allow-Methods', value: 'GET' },
-          ],
-        },
-      ];
-    },
-  }
-  
-  module.exports = nextConfig
+  reactStrictMode: true,
+  webpack: (config) => {
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+      layers: true,
+    };
+    
+    // Optional: Add WASM support
+    config.module.rules.push({
+      test: /\.wasm$/,
+      type: 'webassembly/async',
+    });
+
+    return config;
+  },
+};
+
+module.exports = nextConfig; 
