@@ -7,7 +7,7 @@ import Lightbulb from "@/components/icons/lightbulb";
 import HealthCare from "@/components/icons/health-care";
 import Hourglass from "@/components/icons/hourglass";
 import Building2 from "@/components/icons/building-2";
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
 const MySavings = ({ className }: { className?: string }) => {
   return (
@@ -41,35 +41,35 @@ const MySavings = ({ className }: { className?: string }) => {
   );
 };
 
-interface savingType {
+interface SavingProps {
   id: string;
   title: string;
-  amount: number;
-  Icon: (props: SVGProps) => JSX.Element;
+  amount: string;
+  Icon: (props: ReactSVGProps<SVGSVGElement>) => JSX.Element;
 }
 
-const savings: savingType[] = [
+const savings: SavingProps[] = [
   {
     id: nanoid(),
-    amount: 23560,
+    amount: "23560",
     Icon: Lightbulb,
     title: "Emergency",
   },
   {
     id: nanoid(),
-    amount: 19489,
+    amount: "19489",
     Icon: HealthCare,
     title: "Health",
   },
   {
     id: nanoid(),
-    amount: 18889,
+    amount: "18889",
     Icon: Hourglass,
     title: "Investment",
   },
   {
     id: nanoid(),
-    amount: 21489,
+    amount: "21489",
     Icon: Building2,
     title: "Education",
   },

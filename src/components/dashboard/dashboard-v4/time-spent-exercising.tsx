@@ -23,7 +23,7 @@ const TimeSpentExercising = ({ className, ...props }: Props) => {
   ];
 
   // REACT CHART OPTIONS
-  const chartOptions = merge(baseChartOptions(), {
+  const chartOptions = merge({}, baseChartOptions, {
     colors: ["hsl(var(--icon))", "hsl(var(--icon-active))"],
     markers: { strokeColors: "hsl(var(--icon-active))" },
     grid: { show: false },

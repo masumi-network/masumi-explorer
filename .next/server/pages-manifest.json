@@ -1,7 +1,1 @@
-{
-  "/_app": "pages/_app.js",
-  "/_error": "pages/_error.js",
-  "/_document": "pages/_document.js",
-  "/": "pages/index.js",
-  "/register-agent": "pages/register-agent.js"
-}
+{"/_app":"pages/_app.js","/_document":"pages/_document.js","/agents/[id]":"pages/agents/[id].html","/agents":"pages/agents.html","/agents/[id]/interact":"pages/agents/[id]/interact.html","/":"pages/index.html","/transactions":"pages/transactions.html","/register-agent":"pages/register-agent.html","/verify":"pages/verify.html","/_error":"pages/_error.js","/404":"pages/404.html"}

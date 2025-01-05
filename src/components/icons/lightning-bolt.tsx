@@ -1,6 +1,6 @@
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
-const LightningBolt = (props: SVGProps) => {
+const LightningBolt = (props: ReactSVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="16"

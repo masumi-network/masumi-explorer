@@ -1,10 +1,10 @@
 import { nanoid } from "nanoid";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
-import { DivProps } from "react-html-props";
+import { HTMLAttributes } from "react";
 import { FolderCheck, IndianRupee, LineChart, Package2 } from "lucide-react";
 
-const StatisticsCards = ({ className, ...props }: DivProps) => {
+const StatisticsCards = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
   return (
     <div className={cn(className, "grid grid-cols-2 gap-7")} {...props}>
       {statistics.map(({ id, title, value, status, Icon }) => (

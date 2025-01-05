@@ -1,6 +1,6 @@
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
-const PencilOutline = (props: SVGProps) => {
+const PencilOutline = (props: ReactSVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="37"

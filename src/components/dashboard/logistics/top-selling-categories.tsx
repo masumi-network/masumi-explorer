@@ -36,7 +36,7 @@ const TopSellingCategories = ({ className, ...props }: Props) => {
   ];
 
   // REACT CHART OPTIONS
-  const chartOptions = merge(baseChartOptions(), {
+  const chartOptions = merge({}, baseChartOptions, {
     stroke: { width: 0 },
     colors: ["hsl(var(--icon-muted))", "hsl(var(--icon-active))"],
     grid: {

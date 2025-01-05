@@ -1,6 +1,6 @@
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
-const FAQs = (props: SVGProps) => {
+const FAQs = (props: ReactSVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="16"

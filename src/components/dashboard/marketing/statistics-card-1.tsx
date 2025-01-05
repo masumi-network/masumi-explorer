@@ -20,7 +20,7 @@ const StatisticsCard1 = ({ className, ...props }: Props) => {
   const chartSeries = [{ name: "Tasks", data: [22, 30, 46, 50, 46, 30, 22] }];
 
   // REACT CHART OPTIONS
-  const chartOptions = merge(baseChartOptions(), {
+  const chartOptions = merge({}, baseChartOptions, {
     stroke: { show: false },
     xaxis: { categories: chartCategories },
     colors: ["hsl(var(--icon-muted))", "hsl(var(--icon-active))"],

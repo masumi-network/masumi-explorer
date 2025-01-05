@@ -1,9 +1,14 @@
 "use client";
 
-import "swiper/css";
-import "swiper/css/pagination";
-import { Pagination } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination } from 'swiper/modules';
+import type { SwiperOptions } from 'swiper/types';
+import 'swiper/swiper.min.css';
+import 'swiper/css/pagination';
+
+import SwiperCore from 'swiper';
+SwiperCore.use([Pagination]);
+
 import Image from "next/image";
 import { nanoid } from "nanoid";
 

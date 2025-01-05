@@ -1,6 +1,6 @@
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
-const Yahoo = (props: SVGProps) => {
+const Yahoo = (props: ReactSVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="30"

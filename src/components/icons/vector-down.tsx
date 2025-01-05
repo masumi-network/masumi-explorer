@@ -1,6 +1,6 @@
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
-const VectorDown = (props: SVGProps) => {
+const VectorDown = (props: ReactSVGProps<SVGSVGElement>) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

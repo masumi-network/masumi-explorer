@@ -27,7 +27,7 @@ const StatisticsCard = ({ className, ...props }: Props) => {
   ];
 
   // CAMPAIGN SENT REACT CHART OPTIONS
-  const campaignChartOptions = merge(baseChartOptions(), {
+  const campaignChartOptions = merge({}, baseChartOptions, {
     stroke: { show: false },
     xaxis: { categories: chartCategories },
     colors: ["hsl(var(--icon-active))", "hsl(var(--icon-muted))"],
@@ -49,7 +49,7 @@ const StatisticsCard = ({ className, ...props }: Props) => {
   } as ApexOptions);
 
   // AVERAGE DEALS REACT CHART OPTIONS
-  const dealsChartOptions = merge(baseChartOptions(), {
+  const dealsChartOptions = merge({}, baseChartOptions, {
     stroke: {
       width: 2,
       colors: ["hsl(var(--primary-foreground))"],

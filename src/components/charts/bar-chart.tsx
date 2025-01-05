@@ -27,7 +27,7 @@ const BarChart = (props: Props) => {
   } = props;
 
   // REACT CHART OPTIONS
-  const chartOptions = merge(baseChartOptions(), {
+  const chartOptions = merge({}, baseChartOptions, {
     colors: colors,
     grid: {
       show: true,

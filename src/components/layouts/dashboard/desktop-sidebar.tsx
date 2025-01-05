@@ -12,8 +12,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import SidebarItem from "./sidebar-item";
 
 const DesktopSidebar: React.FC = () => {
-  const url = usePathname();
-  const [state] = useAppContext();
+  const pathname = usePathname();
+  const url = pathname || '/';
+  const { state } = useAppContext();
   const { openSidenav } = state;
   const [open, setOpen] = useState<string | null>(null);
   const [compact, setCompact] = useState<boolean>(false);
@@ -45,7 +46,7 @@ const DesktopSidebar: React.FC = () => {
   };
 
   useEffect(() => {
-    const path = `/${url.split("/")[1]}`;
+    const path = `/${url?.split("/")[1] || ""}`;
     setOpen(path);
     dropDown(path);
   }, [url]);

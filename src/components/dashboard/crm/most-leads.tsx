@@ -19,7 +19,7 @@ type Props = HTMLAttributes<HTMLDivElement>;
 
 const MostLeads = ({ className, ...props }: Props) => {
   // REACT CHART OPTIONS
-  const chartOptions = merge(baseChartOptions(), {
+  const chartOptions = merge({}, baseChartOptions, {
     stroke: { show: false },
     labels: ["Chrome", "Opera Mini", "Firefox", "Yahoo!"],
     plotOptions: { pie: { donut: { size: "75%" }, expandOnClick: false } },

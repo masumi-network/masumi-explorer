@@ -34,7 +34,7 @@ const DonutChart = (props: Props) => {
     chartSeries,
   } = props;
 
-  const chartOptions = merge(baseChartOptions(), {
+  const chartOptions = merge({}, baseChartOptions, {
     stroke: {
       width: strokeWidth,
       colors: [theme === "dark" ? "#1f2937" : "#fff"],

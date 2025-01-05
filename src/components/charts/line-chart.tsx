@@ -11,6 +11,8 @@ interface Props {
   height?: number;
   colors?: string[];
   grid?: boolean;
+  gridColor?: string;
+  legendHorizontalPosition?: string;
   chartSeries: any[];
   chartCategories: string[];
 }
@@ -19,6 +21,8 @@ const LineChart = ({
   height = 330,
   colors = ["#10B981"],
   grid = true,
+  gridColor,
+  legendHorizontalPosition = "right",
   chartSeries,
   chartCategories,
 }: Props) => {
@@ -26,6 +30,7 @@ const LineChart = ({
     colors,
     grid: {
       show: grid,
+      borderColor: gridColor,
     },
     xaxis: {
       categories: chartCategories,

@@ -18,7 +18,7 @@ const PieChart = (props: Props) => {
   const { height = 280, colors, chartSeries, chartCategories } = props;
 
   // REACT CHART OPTIONS
-  const chartOptions = merge(baseChartOptions(), {
+  const chartOptions = merge({}, baseChartOptions, {
     labels: chartCategories,
     colors: colors,
     stroke: { width: 0 },

@@ -24,69 +24,43 @@ export interface AgentMetadata {
   payment_address: string | string[];
 }
 
-export function validateMetadata(metadata: any): boolean {
-  if (!metadata) return false;
+interface Metadata {
+  name: string;
+  description: string | string[];
+  image: string;
+  // Add other metadata fields as needed
+}
 
-  const requiredFields = [
-    'name',
-    'description',
-    'api_url',
-    'version',
-    'payment_address',
-    'author',
-    'requests_per_hour',
-    'tags',
-    'legal'
-  ];
+export function validateMetadata(metadata: Metadata): boolean {
+  // Basic validation
+  if (!metadata || typeof metadata !== 'object') {
+    return false;
+  }
 
-  const requiredAuthorFields = ['name', 'contact', 'organization'];
-  const requiredLegalFields = ['privacy policy', 'terms'];
+  // Check required fields exist
+  if (!metadata.name || !metadata.description || !metadata.image) {
+    return false;
+  }
 
-  // Check all required top-level fields exist
-  const hasAllRequiredFields = requiredFields.every(field => metadata.hasOwnProperty(field));
-  if (!hasAllRequiredFields) return false;
+  // Validate name
+  if (typeof metadata.name !== 'string') {
+    return false;
+  }
 
-  // Check author fields
-  const hasAllAuthorFields = requiredAuthorFields.every(field => 
-    metadata.author && metadata.author.hasOwnProperty(field)
-  );
-  if (!hasAllAuthorFields) return false;
-
-  // Check legal fields
-  const hasAllLegalFields = requiredLegalFields.every(field => 
-    metadata.legal && metadata.legal.hasOwnProperty(field)
-  );
-  if (!hasAllLegalFields) return false;
-
-  // Check types
-  if (
-    typeof metadata.name !== 'string' ||
-    (!Array.isArray(metadata.description) && typeof metadata.description !== 'string') ||
-    typeof metadata.api_url !== 'string' ||
-    typeof metadata.example_output !== 'string' ||
-    typeof metadata.version !== 'string' ||
-    typeof metadata.requests_per_hour !== 'number' ||
-    !Array.isArray(metadata.tags) ||
-    typeof metadata.image !== 'string'
-  ) {
+  // Validate description
+  if (typeof metadata.description !== 'string' && !Array.isArray(metadata.description)) {
     return false;
   }
 
   // If description is an array, check all elements are strings
   if (Array.isArray(metadata.description)) {
-    if (!metadata.description.every(item => typeof item === 'string')) {
+    if (!metadata.description.every((item: string) => typeof item === 'string')) {
       return false;
     }
   }
 
-  // Check payment_address type and format
-  if (Array.isArray(metadata.payment_address)) {
-    // If it's an array, it should be the split parts of a single address
-    if (!metadata.payment_address.every(part => typeof part === 'string')) {
-      return false;
-    }
-    // Optionally: Add validation that when joined, it forms a valid Cardano address
-  } else if (typeof metadata.payment_address !== 'string') {
+  // Validate image
+  if (typeof metadata.image !== 'string') {
     return false;
   }
 

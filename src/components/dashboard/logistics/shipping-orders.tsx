@@ -21,7 +21,7 @@ const ShippingOrders = ({ className, ...props }: Props) => {
   const chartSeries = [{ name: "Tasks", data: [22, 30, 46, 50, 46, 30, 22] }];
 
   // AVERAGE DEALS REACT CHART OPTIONS
-  const dealsChartOptions = merge(baseChartOptions(), {
+  const dealsChartOptions = merge({}, baseChartOptions, {
     stroke: {
       width: 2,
       colors: ["hsl(var(--primary-foreground))"],
@@ -45,7 +45,7 @@ const ShippingOrders = ({ className, ...props }: Props) => {
   } as ApexOptions);
 
   // EARNING YEAR REACT CHART OPTIONS
-  const monthChartOptions = merge(baseChartOptions(), {
+  const monthChartOptions = merge({}, baseChartOptions, {
     stroke: { show: false },
     xaxis: { categories: chartCategories },
     colors: ["hsl(var(--icon-muted))", "hsl(var(--icon-active))"],

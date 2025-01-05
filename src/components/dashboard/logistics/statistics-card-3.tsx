@@ -20,7 +20,7 @@ const StatisticsCard3 = ({ className, ...props }: Props) => {
   const chartSeries = [{ name: "Sales", data: [6, 15, 10, 17, 12, 19, 10] }];
 
   // TOTAL SHIPMENTS REACT CHART OPTIONS
-  const totalShipmentChartOptions = merge(baseChartOptions(), {
+  const totalShipmentChartOptions = merge({}, baseChartOptions, {
     stroke: { show: false },
     xaxis: { categories: chartCategories },
     colors: ["hsl(var(--icon-muted))", "hsl(var(--icon-active))"],

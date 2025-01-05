@@ -23,7 +23,7 @@ const SalesForecase = ({ className, ...props }: Props) => {
   const chartSeries = [{ name: "Sales", data: [50000, 28000, 40000] }];
 
   // REACT CHART OPTIONS
-  const chartOptions = merge(baseChartOptions(), {
+  const chartOptions = merge({}, baseChartOptions, {
     stroke: { width: 0 },
     grid: {
       show: true,

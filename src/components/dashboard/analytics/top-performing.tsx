@@ -7,12 +7,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { DivProps } from "react-html-props";
+import { HTMLAttributes } from "react";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import { nanoid } from "nanoid";
 
-const TopPerforming = ({ className, ...props }: DivProps) => {
+const TopPerforming = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
   return (
     <div
       className={cn("shadow border border-border rounded-2xl", className)}

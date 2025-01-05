@@ -1,6 +1,6 @@
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
-const DocumentTextOutline = (props: SVGProps) => {
+const DocumentTextOutline = (props: ReactSVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="37"

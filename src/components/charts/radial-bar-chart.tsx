@@ -17,7 +17,7 @@ interface Props {
 const RadialBarChart = (props: Props) => {
   const { height = 230, colors, bgColor, chartSeries } = props;
 
-  const chartOptions = merge(baseChartOptions(), {
+  const chartOptions = merge({}, baseChartOptions, {
     labels: ["Audits"],
     colors: colors,
     plotOptions: {

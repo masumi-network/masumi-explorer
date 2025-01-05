@@ -40,7 +40,7 @@ const BackgroundBarChart = (props: Props) => {
       max: 50000,
       tickAmount: 5,
       labels: {
-        formatter: (value) => value / 1000 + "K",
+        formatter: (value: number) => value / 1000 + "K",
         style: { colors: "hsl(var(--secondary-foreground))" },
       },
     },
@@ -60,7 +60,13 @@ const BackgroundBarChart = (props: Props) => {
 
     tooltip: {
       y: {
-        formatter: function (val: number, { dataPointIndex, w }) {
+        formatter: function (val: number, { 
+          dataPointIndex,
+          w 
+        }: {
+          dataPointIndex: number;
+          w: { globals: { labels: string[] } };
+        }) {
           return `${w.globals.labels[dataPointIndex]} : ${val}`;
         },
       },

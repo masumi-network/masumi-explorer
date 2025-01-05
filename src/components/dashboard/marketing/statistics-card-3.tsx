@@ -12,7 +12,7 @@ const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 type Props = HTMLAttributes<HTMLDivElement>;
 
-const StatisticsCard2 = ({ className, ...props }: Props) => {
+const StatisticsCard3 = ({ className, ...props }: Props) => {
   // REACT CHART CATEGORIES LABEL
   const chartCategories = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
 
@@ -20,7 +20,7 @@ const StatisticsCard2 = ({ className, ...props }: Props) => {
   const chartSeries = [{ name: "Tasks", data: [22, 30, 46, 50, 46, 30, 22] }];
 
   // REACT CHART OPTIONS
-  const chartOptions = merge(baseChartOptions(), {
+  const chartOptions = merge({}, baseChartOptions, {
     stroke: { show: false },
     xaxis: { categories: chartCategories },
     colors: ["hsl(var(--icon-muted))", "hsl(var(--icon-active))"],
@@ -67,4 +67,4 @@ const StatisticsCard2 = ({ className, ...props }: Props) => {
   );
 };
 
-export default StatisticsCard2;
+export default StatisticsCard3;

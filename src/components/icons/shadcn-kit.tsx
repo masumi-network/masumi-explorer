@@ -1,6 +1,6 @@
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
-const ShadcnKit = (props: SVGProps) => {
+const ShadcnKit = (props: ReactSVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="110"

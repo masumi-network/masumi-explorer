@@ -3,37 +3,36 @@ import { cn } from "@/lib/utils";
 import { ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SingleDot from "@/components/icons/single-dot";
-import { SVGProps } from "react-html-props";
+import { SVGProps } from "react";
 
 interface SidebarItemProps {
   url: string;
   path: string;
+  Icon?: React.ComponentType<SVGProps<SVGSVGElement>>;
   name: string;
   compact: boolean;
-  Icon: (props: SVGProps) => JSX.Element;
-  childItems: { path: string; name: string }[];
+  childItems: Array<{
+    name: string;
+    path: string;
+  }>;
   compactSpace: string;
   compactHide: string;
   dropDown: (name: string) => boolean;
-  handleOpen: (value: string) => void;
-  navItemClick?: () => void;
+  handleOpen: (value: string | null) => void;
 }
 
-const SidebarItem: React.FC<SidebarItemProps> = (props) => {
-  const {
-    url,
-    path,
-    Icon,
-    name,
-    compact,
-    childItems,
-    compactSpace,
-    compactHide,
-    dropDown,
-    handleOpen,
-    navItemClick,
-  } = props;
-
+const SidebarItem = ({
+  url,
+  path,
+  Icon,
+  name,
+  compact,
+  childItems,
+  compactSpace,
+  compactHide,
+  dropDown,
+  handleOpen,
+}: SidebarItemProps) => {
   const itemButton = cn(
     "w-full flex items-center justify-start rounded-full hover:bg-card-hover text-primary h-11 p-3 text-sm capitalize font-medium",
     path === url ? "bg-card" : "bg-background",
@@ -54,7 +53,7 @@ const SidebarItem: React.FC<SidebarItemProps> = (props) => {
             onClick={() => handleOpen(path)}
           >
             <div className="flex items-center">
-              <Icon className="w-4 h-4 text-inherit" />
+              {Icon && <Icon className="w-4 h-4 text-inherit" />}
               <span className={cn("ml-4 whitespace-nowrap", compactHide)}>
                 {name}
               </span>
@@ -82,7 +81,6 @@ const SidebarItem: React.FC<SidebarItemProps> = (props) => {
               {childItems.map((child, ind) => (
                 <Link href={path + child.path} key={ind}>
                   <Button
-                    onClick={() => (navItemClick ? navItemClick() : null)}
                     className={cn(
                       itemButton,
                       "pl-[22px]",
@@ -103,9 +101,8 @@ const SidebarItem: React.FC<SidebarItemProps> = (props) => {
         <Link href={path}>
           <Button
             className={itemButton}
-            onClick={() => (navItemClick ? navItemClick() : null)}
           >
-            <Icon className="w-4 h-4 text-inherit" />
+            {Icon && <Icon className="w-4 h-4 text-inherit" />}
             <span className={cn("ml-4 whitespace-nowrap", compactHide)}>
               {name}
             </span>

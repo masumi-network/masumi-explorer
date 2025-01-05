@@ -20,7 +20,7 @@ const TotalRevenue = ({ className, ...props }: Props) => {
   const chartSeries = [{ name: "Sales", data: [6, 15, 10, 17, 12, 19, 10] }];
 
   // REACT CHART OPTIONS
-  const chartOptions = merge(baseChartOptions(), {
+  const chartOptions = merge({}, baseChartOptions, {
     colors: ["hsl(var(--icon-active))"],
     markers: { strokeColors: "hsl(var(--icon-active))" },
     grid: { show: false },

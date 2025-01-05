@@ -1,6 +1,6 @@
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
-const DocumentTextSolid = (props: SVGProps) => {
+const DocumentTextSolid = (props: ReactSVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="12"

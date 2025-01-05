@@ -11,9 +11,9 @@ import { nanoid } from "nanoid";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { DivProps } from "react-html-props";
+import { HTMLAttributes } from "react";
 
-const TopQueries = ({ className, ...props }: DivProps) => {
+const TopQueries = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
   return (
     <div
       className={cn("shadow border border-border rounded-2xl", className)}

@@ -1,6 +1,6 @@
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
-const Hourglass = (props: SVGProps) => {
+const Hourglass = (props: ReactSVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="16"

@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
-import { DivProps } from "react-html-props";
+import { HTMLAttributes } from "react";
 import ActionlessBarChart from "@/components/charts/actionless-bar-chart";
 
-const CompletedRates = ({ className, ...props }: DivProps) => {
+const CompletedRates = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
   return (
     <div
       className={cn("shadow border border-border rounded-2xl", className)}

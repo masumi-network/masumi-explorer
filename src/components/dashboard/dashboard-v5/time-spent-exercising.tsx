@@ -34,7 +34,7 @@ const TimeSpentExercising = ({ className, ...props }: Props) => {
   ];
 
   // CAMPAIGN SENT REACT CHART OPTIONS
-  const campaignChartOptions = merge(baseChartOptions(), {
+  const campaignChartOptions = merge({}, baseChartOptions, {
     stroke: { show: false },
     xaxis: { categories: chartCategories },
     colors: ["hsl(var(--primary))"],

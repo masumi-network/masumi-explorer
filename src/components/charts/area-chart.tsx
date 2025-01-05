@@ -12,6 +12,9 @@ interface AreaChartProps {
   series?: ApexAxisChartSeries;
   type?: "area";
   height?: number | string;
+  colors?: string[];
+  chartSeries: { name: string; data: number[] }[];
+  chartCategories: string[];
 }
 
 export default function AreaChart({
@@ -19,6 +22,9 @@ export default function AreaChart({
   series = [],
   type = "area",
   height = 350,
+  colors = [],
+  chartSeries,
+  chartCategories,
 }: AreaChartProps) {
   const areaChartOptions = merge({}, baseChartOptions, {
     grid: {

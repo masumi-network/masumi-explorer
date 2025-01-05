@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{\"components/charts/line-chart.tsx -> react-apexcharts\":{\"id\":\"components/charts/line-chart.tsx -> react-apexcharts\",\"files\":[\"static/chunks/node_modules_react-apexcharts_dist_react-apexcharts_min_js.js\"]}}"
+self.__REACT_LOADABLE_MANIFEST='{"components/charts/line-chart.tsx -> react-apexcharts":{"id":17242,"files":["static/chunks/6c44d60f.0dd188bfc7904b3b.js","static/chunks/242.3ab319dbc58cdc0e.js"]},"pages/_app.tsx -> @sidan-lab/sidan-csl-rs-browser":{"id":98771,"files":[]}}';

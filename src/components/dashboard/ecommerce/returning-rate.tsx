@@ -1,14 +1,14 @@
 import { cn } from "@/lib/utils";
 import { nanoid } from "nanoid";
 import { MoreHorizontal } from "lucide-react";
-import { DivProps, SVGProps } from "react-html-props";
+import { HTMLAttributes, SVGProps as ReactSVGProps } from "react";
 import Dribble from "@/components/icons/dribble";
 import Linkedin from "@/components/icons/linkedin";
 import Twitter from "@/components/icons/twitter";
 import { Button } from "@/components/ui/button";
 import LineChart from "@/components/charts/line-chart";
 
-const ReturningRate = ({ className, ...props }: DivProps) => {
+const ReturningRate = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
   return (
     <div
       className={cn("shadow border border-border rounded-2xl", className)}
@@ -60,7 +60,7 @@ interface visitorsProps {
   category: string;
   rate: number;
   visit: number;
-  Icon: (props: SVGProps) => JSX.Element;
+  Icon: (props: ReactSVGProps<SVGSVGElement>) => JSX.Element;
   chart: { series: any[] };
 }
 

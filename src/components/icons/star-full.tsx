@@ -1,6 +1,6 @@
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
-const StarFull = (props: SVGProps) => {
+const StarFull = (props: ReactSVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="36"

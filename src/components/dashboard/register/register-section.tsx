@@ -37,7 +37,7 @@ interface MetadataFields {
     other?: string;
   };
   image: string;
-  payment_address: string;
+  paymentAddress: string;
 }
 
 // Helper function to split long strings
@@ -112,22 +112,25 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
     paymentAddress: '',
   });
 
-  const handleMetadataChange = (field: string, value: string) => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      setFormData(prev => ({
+  const handleChange = (parent: string, child: string, value: string | number) => {
+    setFormData((prev) => {
+      // Handle nested objects (author, legal)
+      if (parent === 'author' || parent === 'legal') {
+        return {
+          ...prev,
+          [parent]: {
+            ...prev[parent],
+            [child]: value
+          }
+        };
+      }
+      
+      // Handle top-level fields
+      return {
         ...prev,
-        [parent]: {
-          ...prev[parent as keyof MetadataFields],
-          [child]: value
-        }
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
+        [parent]: value
+      };
+    });
   };
 
   const formatPaymentAddress = (address: string): string | string[] => {
@@ -300,7 +303,7 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
               <Label>Agent Name</Label>
               <Input
                 value={formData.name}
-                onChange={(e) => handleMetadataChange('name', e.target.value)}
+                onChange={(e) => handleChange('name', '', e.target.value)}
                 placeholder="My AI Agent"
               />
             </div>
@@ -309,7 +312,7 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
               <Label>Description</Label>
               <Textarea
                 value={formData.description}
-                onChange={(e) => handleMetadataChange('description', e.target.value)}
+                onChange={(e) => handleChange('description', '', e.target.value)}
                 placeholder="Describe what your agent does..."
               />
             </div>
@@ -318,7 +321,7 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
               <Label>Version</Label>
               <Input
                 value={formData.version}
-                onChange={(e) => handleMetadataChange('version', e.target.value)}
+                onChange={(e) => handleChange('version', '', e.target.value)}
                 placeholder="1.0.0"
               />
             </div>
@@ -330,7 +333,7 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
               <Label>Author Name</Label>
               <Input
                 value={formData.author.name}
-                onChange={(e) => handleMetadataChange('author.name', e.target.value)}
+                onChange={(e) => handleChange('author', 'name', e.target.value)}
               />
             </div>
 
@@ -339,7 +342,7 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
               <Input
                 type="email"
                 value={formData.author.contact}
-                onChange={(e) => handleMetadataChange('author.contact', e.target.value)}
+                onChange={(e) => handleChange('author', 'contact', e.target.value)}
               />
             </div>
 
@@ -347,7 +350,7 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
               <Label>Organization</Label>
               <Input
                 value={formData.author.organization}
-                onChange={(e) => handleMetadataChange('author.organization', e.target.value)}
+                onChange={(e) => handleChange('author', 'organization', e.target.value)}
               />
             </div>
           </div>
@@ -358,7 +361,7 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
               <Label>API Endpoint</Label>
               <Input
                 value={formData.api_url}
-                onChange={(e) => handleMetadataChange('api_url', e.target.value)}
+                onChange={(e) => handleChange('api_url', '', e.target.value)}
                 placeholder="https://api.example.com/agent"
               />
             </div>
@@ -367,7 +370,7 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
               <Label>Example Output (IPFS Hash)</Label>
               <Input
                 value={formData.example_output}
-                onChange={(e) => handleMetadataChange('example_output', e.target.value)}
+                onChange={(e) => handleChange('example_output', '', e.target.value)}
                 placeholder="QmXyz..."
               />
             </div>
@@ -377,7 +380,7 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
               <Input
                 type="number"
                 value={formData.requests_per_hour}
-                onChange={(e) => handleMetadataChange('requests_per_hour', parseInt(e.target.value))}
+                onChange={(e) => handleChange('requests_per_hour', '', parseInt(e.target.value))}
               />
             </div>
           </div>
@@ -388,7 +391,7 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
               <Label>Privacy Policy URL</Label>
               <Input
                 value={formData.legal["privacy policy"]}
-                onChange={(e) => handleMetadataChange('legal.privacy policy', e.target.value)}
+                onChange={(e) => handleChange('legal', 'privacy policy', e.target.value)}
                 placeholder="https://example.com/privacy"
               />
             </div>
@@ -397,7 +400,7 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
               <Label>Terms of Service URL</Label>
               <Input
                 value={formData.legal.terms}
-                onChange={(e) => handleMetadataChange('legal.terms', e.target.value)}
+                onChange={(e) => handleChange('legal', 'terms', e.target.value)}
                 placeholder="https://example.com/terms"
               />
             </div>
@@ -406,7 +409,7 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
               <Label>Other Legal Documentation (Optional)</Label>
               <Input
                 value={formData.legal.other}
-                onChange={(e) => handleMetadataChange('legal.other', e.target.value)}
+                onChange={(e) => handleChange('legal', 'other', e.target.value)}
                 placeholder="https://example.com/other"
               />
             </div>

@@ -21,11 +21,21 @@ import {
 import Link from "next/link";
 import { validateMetadata } from "@/lib/metadata-validator";
 import { useWallet } from '@meshsdk/react';
-import { Transaction, PlutusScript, applyParamsToScript, fromHex, resolvePaymentKeyHash } from '@meshsdk/core';
+import { 
+  Transaction as MeshTransaction, 
+  PlutusScript, 
+  applyParamsToScript, 
+  resolvePaymentKeyHash,
+} from '@meshsdk/core';
 import { blueprint } from "@/lib/plutus-minting-contract";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { MetadataWarning } from "@/components/ui/metadata-warning";
 import { cn } from "@/lib/utils";
+
+// Add helper function if needed
+const hexToString = (hex: string): string => {
+  return Buffer.from(hex, 'hex').toString();
+};
 
 interface AgentDetails {
   asset: string;
@@ -104,6 +114,8 @@ interface Transaction {
   type: 'selling' | 'buying';
   buyerPkh: string;
   state: TransactionState;
+  unlockTime: number;
+  refundTime: number;
   actions: {
     canRequestRefund: boolean;
     canUnlock: boolean;
@@ -113,6 +125,23 @@ interface Transaction {
     canDisputeRefund: boolean;
   };
 }
+
+// Make sure to set these values when creating a transaction
+const createTransaction = (data: any): Transaction => {
+  return {
+    ...data,
+    unlockTime: Date.now() + (60 * 60 * 1000), // 1 hour from now
+    refundTime: Date.now() + (2 * 60 * 60 * 1000), // 2 hours from now
+    actions: {
+      canRequestRefund: false,
+      canUnlock: false,
+      canDenyRefund: false,
+      canWithdrawRefund: false,
+      canCancelRefundRequest: false,
+      canDisputeRefund: false,
+    }
+  };
+};
 
 export default function AgentDetails() {
   const router = useRouter();
@@ -269,6 +298,8 @@ export default function AgentDetails() {
                   type: 'selling',
                   buyerPkh: datum.fields[0].bytes,
                   state: 'locked',
+                  unlockTime: 0,
+                  refundTime: 0,
                   actions: {
                     canRequestRefund: false,
                     canUnlock: false,
@@ -405,7 +436,7 @@ export default function AgentDetails() {
       addDebugInfo(`Using Asset Name: ${assetName}`);
 
       // Create transaction with token UTXO
-      const tx = new Transaction({ initiator: wallet })
+      const tx = new MeshTransaction({ initiator: wallet })
         .setTxInputs([tokenUtxo]);
 
       tx.isCollateralNeeded = true;

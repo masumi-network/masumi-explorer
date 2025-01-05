@@ -1,6 +1,6 @@
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
-const Refresh = (props: SVGProps) => {
+const Refresh = (props: ReactSVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="37"

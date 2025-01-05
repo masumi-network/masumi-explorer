@@ -28,7 +28,7 @@ const Sales = ({ className, ...props }: Props) => {
   const chartCategories = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
 
   // REACT CHART OPTIONS
-  const chartOptions = merge(baseChartOptions(), {
+  const chartOptions = merge({}, baseChartOptions, {
     stroke: { width: 0 },
     colors: ["hsl(var(--icon-muted))", "hsl(var(--icon-active))"],
     grid: {

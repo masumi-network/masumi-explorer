@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 import LineChart from "@/components/charts/line-chart";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
-import { DivProps } from "react-html-props";
+import { HTMLAttributes } from "react";
 
-const AveragePositions = ({ className, ...props }: DivProps) => {
+const AveragePositions = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
   return (
     <div
       className={cn("shadow border border-border rounded-2xl", className)}

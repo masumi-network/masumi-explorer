@@ -5,11 +5,13 @@ import AreaChart from "@/components/charts/area-chart";
 import { MoreHorizontal } from "lucide-react";
 import { HTMLAttributes } from "react";
 
-type Props = HTMLAttributes<HTMLDivElement>;
+interface Props {
+  className?: string;
+}
 
-const Analytics = ({ className, ...props }: Props) => {
+const Analytics = ({ className }: Props) => {
   return (
-    <Card className={cn("w-full", className)} {...props}>
+    <Card className={cn("w-full", className)}>
       <div className="mb-4 pr-6 flex items-center justify-between">
         <div>
           {["Users", "Sessions", "Bounce Rate", "Session Duration"].map(
@@ -49,26 +51,10 @@ const Analytics = ({ className, ...props }: Props) => {
           chartSeries={[
             {
               name: "Sales",
-              data: [
-                8000, 4000, 4500, 17000, 18000, 40000, 18000, 10000, 6000,
-                20000,
-              ],
+              data: [6, 15, 10, 17, 20, 10, 15],
             },
           ]}
-          chartCategories={[
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec",
-          ]}
+          chartCategories={["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"]}
         />
       </div>
     </Card>

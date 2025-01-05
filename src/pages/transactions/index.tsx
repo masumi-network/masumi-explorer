@@ -1,12 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useWallet } from '@meshsdk/react';
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { fetchFromBlockfrost } from "@/lib/blockfrost";
-import { resolvePaymentKeyHash, fromHex } from '@meshsdk/core';
+import { resolvePaymentKeyHash } from '@meshsdk/core';
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
+
+// Add helper function for hex conversion
+const hexToString = (hex: string): string => {
+  return Buffer.from(hex, 'hex').toString();
+};
 
 interface Transaction {
   txHash: string;

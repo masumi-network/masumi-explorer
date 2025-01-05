@@ -1,6 +1,6 @@
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
-const ColorWatchOutline = (props: SVGProps) => {
+const ColorWatchOutline = (props: ReactSVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="37"

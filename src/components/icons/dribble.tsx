@@ -1,6 +1,6 @@
-import { SVGProps } from "react-html-props";
+import { SVGProps as ReactSVGProps } from "react";
 
-const Dribble = (props: SVGProps) => {
+const Dribble = (props: ReactSVGProps<SVGSVGElement>) => {
   return (
     <svg
       width="28"
