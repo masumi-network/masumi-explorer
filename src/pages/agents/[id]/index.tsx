@@ -31,6 +31,7 @@ import { blueprint } from "@/lib/plutus-minting-contract";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { MetadataWarning } from "@/components/ui/metadata-warning";
 import { cn } from "@/lib/utils";
+import { useNetwork } from "@/context/network-context";
 
 // Add helper function if needed
 const hexToString = (hex: string): string => {
@@ -156,6 +157,7 @@ export default function AgentDetails() {
   const [deregistrationTxHash, setDeregistrationTxHash] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [buyerTransactions, setBuyerTransactions] = useState<Transaction[]>([]);
+  const { config } = useNetwork();
 
   useEffect(() => {
     const fetchAgentDetails = async () => {
@@ -163,9 +165,9 @@ export default function AgentDetails() {
 
       try {
         console.log('Fetching asset:', id);
-        const assetData = await fetchFromBlockfrost(`/assets/${id}`);
+        const assetData = await fetchFromBlockfrost(`/assets/${id}`, config);
         console.log('Asset data:', assetData);
-        const txDetails = await fetchFromBlockfrost(`/txs/${assetData.initial_mint_tx_hash}`);
+        const txDetails = await fetchFromBlockfrost(`/txs/${assetData.initial_mint_tx_hash}`, config);
         console.log('Transaction details:', txDetails);
 
         const amount = parseInt(assetData.quantity || '0');
@@ -205,7 +207,7 @@ export default function AgentDetails() {
     };
 
     fetchAgentDetails();
-  }, [id]);
+  }, [id, config]);
 
   useEffect(() => {
     const checkOwnership = async () => {
@@ -234,7 +236,8 @@ export default function AgentDetails() {
         addDebugInfo(`Agent payment address: ${agent.paymentAddress}`);
         
         const scriptUtxos = await fetchFromBlockfrost(
-          `/addresses/addr_test1wr3hvt2hw89l6ay85lr0f2nr80tckrnpjr808dxhq39xkssvw7mx8/utxos`
+          `/addresses/addr_test1wr3hvt2hw89l6ay85lr0f2nr80tckrnpjr808dxhq39xkssvw7mx8/utxos`,
+          config
         );
         addDebugInfo(`Found ${scriptUtxos.length} UTXOs at script address`);
 
@@ -242,7 +245,7 @@ export default function AgentDetails() {
           scriptUtxos.map(async (utxo: any) => {
             try {
               addDebugInfo(`Processing UTXO: ${utxo.tx_hash}`);
-              const tx = await fetchFromBlockfrost(`/txs/${utxo.tx_hash}/utxos`);
+              const tx = await fetchFromBlockfrost(`/txs/${utxo.tx_hash}/utxos`, config);
               
               const scriptOutput = tx.outputs.find((output: any) => 
                 output.address === 'addr_test1wr3hvt2hw89l6ay85lr0f2nr80tckrnpjr808dxhq39xkssvw7mx8'
@@ -257,7 +260,8 @@ export default function AgentDetails() {
               // Get the datum from Blockfrost
               addDebugInfo(`Fetching datum for hash: ${scriptOutput.data_hash}`);
               const datumResponse = await fetchFromBlockfrost(
-                `/scripts/datum/${scriptOutput.data_hash}`
+                `/scripts/datum/${scriptOutput.data_hash}`,
+                config
               );
 
               if (!datumResponse?.json_value) {
@@ -277,7 +281,7 @@ export default function AgentDetails() {
               // Check if this transaction belongs to our agent
               if (sellerPkhFromDatum === sellerPkhFromAddress) {
                 addDebugInfo(`Match found! Transaction belongs to this agent`);
-                const txDetails = await fetchFromBlockfrost(`/txs/${utxo.tx_hash}`);
+                const txDetails = await fetchFromBlockfrost(`/txs/${utxo.tx_hash}`, config);
                 
                 const lovelaceAmount = scriptOutput.amount.find((a: any) => a.unit === 'lovelace');
                 if (!lovelaceAmount) {
@@ -349,7 +353,7 @@ export default function AgentDetails() {
     };
 
     fetchTransactions();
-  }, [agent?.paymentAddress]);
+  }, [agent?.paymentAddress, config]);
 
   useEffect(() => {
     const checkWalletTransactions = async () => {

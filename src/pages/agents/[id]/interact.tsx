@@ -23,6 +23,7 @@ import Link from "next/link";
 import { validateMetadata } from "@/lib/metadata-validator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useNetwork } from "@/context/network-context";
 
 // Admin addresses
 const ADMIN_ADDRESSES = [
@@ -45,7 +46,8 @@ export default function InteractWithAgent() {
   const router = useRouter();
   const { id } = router.query;
   const { connected, wallet } = useWallet();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [agent, setAgent] = useState<AgentDetails | null>(null);
   const [formData, setFormData] = useState<PaymentFormData>({
     referenceId: '',
@@ -53,6 +55,7 @@ export default function InteractWithAgent() {
   });
   const [txHash, setTxHash] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
+  const { config } = useNetwork();
 
   const addDebugInfo = (info: string) => {
     console.log(info);
@@ -65,33 +68,22 @@ export default function InteractWithAgent() {
 
       try {
         addDebugInfo('Checking metadata validity...');
-        const assetData = await fetchFromBlockfrost(`/assets/${id}`);
+        const assetData = await fetchFromBlockfrost(`/assets/${id}`, config);
         addDebugInfo('Fetched asset data');
         const isValid = validateMetadata(assetData.onchain_metadata);
         addDebugInfo(`Metadata validation result: ${isValid ? 'Valid' : 'Invalid'}`);
-        
+
         if (!isValid) {
-          addDebugInfo('Invalid metadata, redirecting to agent details');
           router.push(`/agents/${id}`);
+          return;
         }
-      } catch (error) {
-        addDebugInfo(`Error checking metadata: ${error}`);
-        router.push(`/agents/${id}`);
-      }
-    };
 
-    checkMetadata();
-  }, [id, router]);
+        // Fetch additional agent details
+        const txDetails = await fetchFromBlockfrost(
+          `/txs/${assetData.initial_mint_tx_hash}`, 
+          config
+        );
 
-  useEffect(() => {
-    const fetchAgentDetails = async () => {
-      if (!id) return;
-
-      try {
-        addDebugInfo('Fetching agent details...');
-        const assetData = await fetchFromBlockfrost(`/assets/${id}`);
-        addDebugInfo('Agent data fetched');
-        
         const paymentAddress = Array.isArray(assetData.onchain_metadata?.payment_address)
           ? assetData.onchain_metadata.payment_address.join('')
           : assetData.onchain_metadata?.payment_address || '';
@@ -103,12 +95,15 @@ export default function InteractWithAgent() {
           paymentAddress
         });
       } catch (error) {
-        addDebugInfo(`Error fetching agent details: ${error}`);
+        console.error('Error checking metadata:', error);
+        setError('Failed to validate agent metadata');
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchAgentDetails();
-  }, [id]);
+    checkMetadata();
+  }, [id, router, config]);
 
   const handlePayment = async () => {
     if (!connected || !wallet) {

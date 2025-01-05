@@ -94,7 +94,10 @@ export default function LatestPayments({ className }: { className?: string }) {
             </TableHeader>
             <TableBody>
               {transactions.map((tx) => (
-                <TableRow key={tx.hash} className="hover:bg-zinc-900/40 border-zinc-800">
+                <TableRow 
+                  key={tx.hash} 
+                  className="hover:bg-zinc-900/40 border-zinc-800"
+                >
                   <TableCell>
                     <div className="flex flex-col">
                       <span>{new Date(tx.timestamp).toLocaleDateString()}</span>

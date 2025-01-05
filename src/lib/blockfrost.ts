@@ -1,22 +1,11 @@
 interface BlockfrostConfig {
-  blockfrostUrl: string;
   blockfrostApiKey: string;
-  policyId: string;
+  blockfrostUrl: string;
   contractAddress: string;
+  policyId: string;
 }
 
 export async function fetchFromBlockfrost(endpoint: string, config: BlockfrostConfig) {
-  console.log('Blockfrost Config:', {
-    url: config?.blockfrostUrl,
-    apiKey: config?.blockfrostApiKey ? '[REDACTED]' : 'missing',
-    policyId: config?.policyId,
-    endpoint
-  });
-
-  if (!config || !config.blockfrostUrl || !config.blockfrostApiKey) {
-    throw new Error('Invalid Blockfrost configuration');
-  }
-
   const response = await fetch(`${config.blockfrostUrl}${endpoint}`, {
     headers: {
       project_id: config.blockfrostApiKey,
@@ -28,4 +17,7 @@ export async function fetchFromBlockfrost(endpoint: string, config: BlockfrostCo
   }
 
   return response.json();
-} 
+}
+
+// Export the type if needed
+export type { BlockfrostConfig }; 

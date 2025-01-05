@@ -9,7 +9,7 @@ import Footer from "@/components/layouts/component/footer";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CardanoWallet, ConnectWallet } from '@meshsdk/react';
+import { CardanoWallet } from '@meshsdk/react';
 import { cn } from "@/lib/utils";
 import { useNetwork } from "@/context/network-context";
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -23,13 +23,17 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   // Sync network state with URL on mount
   useEffect(() => {
-    const networkParam = searchParams.get('network');
-    if (networkParam && (networkParam === 'mainnet' || networkParam === 'preprod')) {
-      setNetwork(networkParam);
+    if (searchParams) {
+      const networkParam = searchParams.get('network');
+      if (networkParam && (networkParam === 'mainnet' || networkParam === 'preprod')) {
+        setNetwork(networkParam);
+      }
     }
   }, [searchParams, setNetwork]);
 
   const updateNetwork = (newNetwork: 'mainnet' | 'preprod') => {
+    if (!searchParams) return;
+    
     const current = new URLSearchParams(Array.from(searchParams.entries()));
     current.set('network', newNetwork);
     

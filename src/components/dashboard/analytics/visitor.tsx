@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { MoreHorizontal, ExternalLink, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { fetchFromBlockfrost, BLOCKFROST_CONFIG } from "@/lib/blockfrost";
+import { fetchFromBlockfrost } from "@/lib/blockfrost";
+import { useNetwork } from "@/context/network-context";
 
 interface Agent {
   asset: string;
@@ -28,12 +29,13 @@ const TopAgents = ({ className, ...props }: any) => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { config } = useNetwork();
 
   useEffect(() => {
     const fetchAgents = async () => {
       try {
         setLoading(true);
-        const data = await fetchFromBlockfrost(`/assets/policy/${BLOCKFROST_CONFIG.policyId}`);
+        const data = await fetchFromBlockfrost(`/assets/policy/${config.policyId}`, config);
         
         // Transform the data into Agent format
         const transformedAgents = data
@@ -66,7 +68,7 @@ const TopAgents = ({ className, ...props }: any) => {
     };
 
     fetchAgents();
-  }, []);
+  }, [config]);
 
   if (loading) {
     return (

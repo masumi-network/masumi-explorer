@@ -134,7 +134,10 @@ export default function TopAgents({ className, ...props }: any) {
             </TableHeader>
             <TableBody>
               {agents.map((agent) => (
-                <TableRow key={agent.asset}>
+                <TableRow 
+                  key={agent.asset} 
+                  className="border-zinc-800"
+                >
                   <TableCell className="pl-6">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">

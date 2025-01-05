@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchFromBlockfrost, BLOCKFROST_CONFIG } from "@/lib/blockfrost";
+import { fetchFromBlockfrost } from "@/lib/blockfrost";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ import {
 import { useWallet } from '@meshsdk/react';
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useNetwork } from "@/context/network-context";
 
 interface Agent {
   asset: string;
@@ -53,6 +54,7 @@ export default function AgentsPage() {
   const [metadataFilter, setMetadataFilter] = useState<string>("all");
   const [ownershipFilter, setOwnershipFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const { config } = useNetwork();
 
   // Filter and search logic
   const filteredAgents = agents.filter(agent => {
@@ -96,9 +98,9 @@ export default function AgentsPage() {
   useEffect(() => {
     const fetchAgents = async () => {
       try {
-        const data = await fetchFromBlockfrost(`/assets/policy/${BLOCKFROST_CONFIG.policyId}`);
+        const data = await fetchFromBlockfrost(`/assets/policy/${config.policyId}`, config);
         const agentPromises = data.map(async (asset: any) => {
-          const details = await fetchFromBlockfrost(`/assets/${asset.asset}`);
+          const details = await fetchFromBlockfrost(`/assets/${asset.asset}`, config);
           const hasStandardMetadata = validateMetadata(details.onchain_metadata);
           const amount = parseInt(details.quantity || '0');
 
@@ -127,7 +129,7 @@ export default function AgentsPage() {
     };
 
     fetchAgents();
-  }, []);
+  }, [config]);
 
   useEffect(() => {
     const fetchWalletAssets = async () => {

@@ -2,12 +2,14 @@
 const nextConfig = {
   reactStrictMode: true,
   webpack: (config, { isServer }) => {
+    // WebAssembly configuration
     config.experiments = {
       ...config.experiments,
       asyncWebAssembly: true,
       layers: true,
     };
 
+    // Fallbacks for non-server environment
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -18,6 +20,6 @@ const nextConfig = {
 
     return config;
   },
-};
+}
 
 module.exports = nextConfig; 

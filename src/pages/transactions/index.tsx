@@ -9,6 +9,7 @@ import { resolvePaymentKeyHash } from '@meshsdk/core';
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
+import { useNetwork } from "@/context/network-context";
 
 // Add helper function for hex conversion
 const hexToString = (hex: string): string => {
@@ -32,19 +33,24 @@ interface Transaction {
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const { config } = useNetwork();
 
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
         const scriptUtxos = await fetchFromBlockfrost(
-          `/addresses/addr_test1wr3hvt2hw89l6ay85lr0f2nr80tckrnpjr808dxhq39xkssvw7mx8/utxos`
+          `/addresses/addr_test1wr3hvt2hw89l6ay85lr0f2nr80tckrnpjr808dxhq39xkssvw7mx8/utxos`,
+          config
         );
         console.log(`Found ${scriptUtxos.length} UTXOs`);
 
         const decodedTransactions = await Promise.all(
           scriptUtxos.map(async (utxo: any) => {
             try {
-              const tx = await fetchFromBlockfrost(`/txs/${utxo.tx_hash}/utxos`);
+              const tx = await fetchFromBlockfrost(
+                `/txs/${utxo.tx_hash}/utxos`,
+                config
+              );
               
               const scriptOutput = tx.outputs.find((output: any) => 
                 output.address === 'addr_test1wr3hvt2hw89l6ay85lr0f2nr80tckrnpjr808dxhq39xkssvw7mx8'
@@ -54,13 +60,17 @@ export default function TransactionsPage() {
 
               // Get the datum from Blockfrost
               const datumResponse = await fetchFromBlockfrost(
-                `/scripts/datum/${scriptOutput.data_hash}`
+                `/scripts/datum/${scriptOutput.data_hash}`,
+                config
               );
 
               if (!datumResponse?.json_value) return null;
 
               const datum = datumResponse.json_value;
-              const txDetails = await fetchFromBlockfrost(`/txs/${utxo.tx_hash}`);
+              const txDetails = await fetchFromBlockfrost(
+                `/txs/${utxo.tx_hash}`,
+                config
+              );
               
               return {
                 txHash: utxo.tx_hash,
@@ -96,7 +106,7 @@ export default function TransactionsPage() {
     };
 
     fetchTransactions();
-  }, []);
+  }, [config]);
 
   if (loading) {
     return (
