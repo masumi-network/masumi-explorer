@@ -36,28 +36,67 @@ export default function TopAgents({ className, ...props }: any) {
     const fetchAgents = async () => {
       try {
         setLoading(true);
+        
+        // Get initial list of assets
         const data = await fetchFromBlockfrost(`/assets/policy/${BLOCKFROST_CONFIG.policyId}`);
         
-        // Get the latest 10 agents
-        const latestAgents = data.slice(-10).reverse();
+        // Process in batches to avoid too many concurrent requests
+        const batchSize = 5;
+        const agents = [];
         
-        // Transform the data into Agent format
-        const transformedAgents = latestAgents.map((asset: any) => {
-          const hasStandardMetadata = validateMetadata(asset.onchain_metadata);
+        for (let i = 0; i < data.length; i += batchSize) {
+          const batch = data.slice(i, i + batchSize);
+          const batchResults = await Promise.all(
+            batch.map(async (asset: any) => {
+              try {
+                const assetDetails = await fetchFromBlockfrost(`/assets/${asset.asset}`);
+                
+                // Only fetch tx details if metadata is valid
+                if (validateMetadata(assetDetails.onchain_metadata)) {
+                  const txDetails = await fetchFromBlockfrost(
+                    `/txs/${assetDetails.initial_mint_tx_hash}`
+                  );
+                  
+                  return {
+                    ...asset,
+                    onchain_metadata: assetDetails.onchain_metadata,
+                    minted_at: txDetails.block_time * 1000
+                  };
+                }
+                return null;
+              } catch (error) {
+                console.warn(`Failed to fetch details for asset ${asset.asset}:`, error);
+                return null;
+              }
+            })
+          );
           
-          return {
-            asset: asset.asset,
-            name: asset.onchain_metadata?.name || 'Unnamed Agent',
-            description: asset.onchain_metadata?.description || 'No description available',
-            authorName: hasStandardMetadata 
-              ? (asset.onchain_metadata?.author?.name || 'Unknown Author')
-              : 'Unknown Author',
-            registeredAt: new Date(asset.minted_at || Date.now()).toLocaleDateString(),
-            requests: Math.floor(Math.random() * 20000) + 5000,
-            identityVerified: asset.onchain_metadata?.identity_verified || false,
-            metadataCorrect: hasStandardMetadata,
-          };
-        });
+          agents.push(...batchResults.filter(Boolean));
+          
+          // If we have enough valid agents, stop fetching
+          if (agents.length >= 10) break;
+          
+          // Add a small delay between batches
+          if (i + batchSize < data.length) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+
+        // Sort and take the latest 10
+        const validAgents = agents
+          .sort((a, b) => b.minted_at - a.minted_at)
+          .slice(0, 10);
+        
+        const transformedAgents = validAgents.map((asset: any) => ({
+          asset: asset.asset,
+          name: asset.onchain_metadata?.name || 'Unnamed Agent',
+          description: asset.onchain_metadata?.description || 'No description available',
+          authorName: asset.onchain_metadata?.author?.name || 'Unknown Author',
+          registeredAt: new Date(asset.minted_at).toLocaleDateString(),
+          requests: Math.floor(Math.random() * 20000) + 5000,
+          identityVerified: asset.onchain_metadata?.identity_verified || false,
+          metadataCorrect: true,
+        }));
 
         setAgents(transformedAgents);
       } catch (err) {
@@ -101,10 +140,7 @@ export default function TopAgents({ className, ...props }: any) {
   }
 
   return (
-    <div
-      className={cn("shadow border border-border rounded-2xl", className)}
-      {...props}
-    >
+    <div className={cn("shadow border border-border rounded-2xl", className)} {...props}>
       <div className="p-6 pb-2 flex items-start justify-between">
         <div>
           <h2 className="text-lg font-medium mb-2">Latest AI Agents</h2>
@@ -121,10 +157,9 @@ export default function TopAgents({ className, ...props }: any) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[300px] pl-6">AGENT NAME</TableHead>
+            <TableHead className="w-[400px] pl-6">AGENT</TableHead>
             <TableHead>AUTHOR</TableHead>
             <TableHead className="text-center">REGISTERED</TableHead>
-            <TableHead className="text-center">REQUESTS</TableHead>
             <TableHead className="text-center">IDENTITY</TableHead>
             <TableHead className="text-center">METADATA</TableHead>
             <TableHead className="text-right pr-6">ACTIONS</TableHead>
@@ -134,7 +169,7 @@ export default function TopAgents({ className, ...props }: any) {
           {agents.map((agent) => (
             <TableRow key={agent.asset}>
               <TableCell className="pl-6">
-                <div>
+                <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <p className="font-medium">{agent.name}</p>
                     <Link 
@@ -146,12 +181,11 @@ export default function TopAgents({ className, ...props }: any) {
                       <ExternalLinkIcon className="w-3 h-3" />
                     </Link>
                   </div>
-                  <p className="text-sm text-muted-foreground">{agent.description}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{agent.description}</p>
                 </div>
               </TableCell>
               <TableCell>{agent.authorName}</TableCell>
               <TableCell className="text-center">{agent.registeredAt}</TableCell>
-              <TableCell className="text-center">{agent.requests.toLocaleString()}</TableCell>
               <TableCell className="text-center">
                 {agent.identityVerified ? (
                   <div className="flex items-center justify-center text-green-500">
