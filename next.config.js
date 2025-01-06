@@ -6,17 +6,19 @@ const nextConfig = {
     config.experiments = {
       ...config.experiments,
       asyncWebAssembly: true,
-      layers: true,
     };
 
-    // Fallbacks for non-server environment
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        path: false,
-      };
-    }
+    // Optional: Add polyfill for older browsers
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+    };
+
+    // Suppress WebAssembly warnings
+    config.ignoreWarnings = [
+      { module: /node_modules\/@sidan-lab\/sidan-csl-rs-browser\/sidan_csl_rs_bg\.wasm/ }
+    ];
 
     return config;
   },

@@ -1,168 +1,79 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useWallet } from '@meshsdk/react';
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { fetchFromBlockfrost } from "@/lib/blockfrost";
-import { resolvePaymentKeyHash } from '@meshsdk/core';
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { ExternalLink } from "lucide-react";
-import { useNetwork } from "@/context/network-context";
-
-// Add helper function for hex conversion
-const hexToString = (hex: string): string => {
-  return Buffer.from(hex, 'hex').toString();
-};
+import { useBlockfrost } from '@/hooks/use-blockfrost';
+import { useNetwork } from '@/context/network-context';
 
 interface Transaction {
-  txHash: string;
-  amount: string;
   timestamp: number;
-  status: 'pending' | 'completed' | 'refunded';
-  referenceId: string;
-  buyerPkh: string;
-  sellerPkh: string;
-  unlockTime: number;
-  refundTime: number;
-  refundRequested: boolean;
-  refundDenied: boolean;
+  txHash: string;
+  amount: number;
+  sender: string;
 }
 
 export default function TransactionsPage() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
   const { config } = useNetwork();
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const scriptUtxos = await fetchFromBlockfrost(
-          `/addresses/addr_test1wr3hvt2hw89l6ay85lr0f2nr80tckrnpjr808dxhq39xkssvw7mx8/utxos`,
-          config
-        );
-        console.log(`Found ${scriptUtxos.length} UTXOs`);
-
-        const decodedTransactions = await Promise.all(
-          scriptUtxos.map(async (utxo: any) => {
+  const { data: transactions, isLoading } = useBlockfrost<Transaction[]>(
+    `/addresses/${config.contractAddress}/transactions`,
+    {
+      select: (data: any) => {
+        // Process transactions...
+        const processedTransactions = data
+          .map((tx: any) => {
             try {
-              const tx = await fetchFromBlockfrost(
-                `/txs/${utxo.tx_hash}/utxos`,
-                config
-              );
-              
-              const scriptOutput = tx.outputs.find((output: any) => 
-                output.address === 'addr_test1wr3hvt2hw89l6ay85lr0f2nr80tckrnpjr808dxhq39xkssvw7mx8'
-              );
-
-              if (!scriptOutput?.inline_datum) return null;
-
-              // Get the datum from Blockfrost
-              const datumResponse = await fetchFromBlockfrost(
-                `/scripts/datum/${scriptOutput.data_hash}`,
-                config
-              );
-
-              if (!datumResponse?.json_value) return null;
-
-              const datum = datumResponse.json_value;
-              const txDetails = await fetchFromBlockfrost(
-                `/txs/${utxo.tx_hash}`,
-                config
-              );
-              
-              return {
-                txHash: utxo.tx_hash,
-                amount: scriptOutput.amount.find((a: any) => a.unit === 'lovelace').quantity,
-                timestamp: txDetails.block_time,
-                status: 'pending',
-                buyerPkh: datum.fields[0].bytes,
-                sellerPkh: datum.fields[1].bytes,
-                referenceId: Buffer.from(datum.fields[2].bytes, 'hex').toString('utf8'),
-                resultHash: datum.fields[3].bytes,
-                unlockTime: datum.fields[4].int,
-                refundTime: datum.fields[5].int,
-                refundRequested: datum.fields[6].constructor === 1,
-                refundDenied: datum.fields[7].constructor === 1
+              const transaction: Transaction = {
+                timestamp: tx.block_time * 1000,
+                txHash: tx.tx_hash,
+                amount: parseInt(tx.amount?.find((a: any) => a.unit === 'lovelace')?.quantity || '0'),
+                sender: tx.inputs?.[0]?.address || 'Unknown'
               };
+              return transaction;
             } catch (error) {
               console.error('Error processing transaction:', error);
               return null;
             }
           })
-        );
+          .filter((tx: Transaction | null): tx is Transaction => tx !== null);
 
-        const validTransactions = decodedTransactions
-          .filter(Boolean)
-          .sort((a, b) => b.timestamp - a.timestamp);
+        return processedTransactions;
+      },
+    }
+  );
 
-        setTransactions(validTransactions);
-      } catch (error) {
-        console.error('Error fetching transactions:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTransactions();
-  }, [config]);
-
-  if (loading) {
-    return (
-      <div className="p-6 text-center">
-        <p className="text-muted-foreground">Loading transactions...</p>
-      </div>
-    );
+  if (isLoading) {
+    return <div>Loading transactions...</div>;
   }
 
   return (
     <div className="container mx-auto py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Transactions</h1>
-        <p className="text-muted-foreground">All smart contract transactions</p>
+        <h1 className="text-2xl font-semibold text-white">Transactions</h1>
+        <p className="text-[#71717A]">All smart contract transactions</p>
       </div>
 
       <div className="space-y-4">
-        {transactions.map((tx) => (
-          <Card key={tx.txHash} className="p-4">
+        {transactions?.map((tx) => (
+          <div key={tx.txHash} className="p-4 border border-zinc-800 rounded-lg">
             <div className="flex justify-between items-start">
               <div>
-                <p className="font-medium">Reference ID: {tx.referenceId}</p>
-                <p className="text-sm text-muted-foreground">
-                  {new Date(tx.timestamp * 1000).toLocaleString()}
+                <p className="text-sm text-[#71717A]">
+                  {new Date(tx.timestamp).toLocaleString()}
                 </p>
-                <div className="mt-2 space-y-1">
-                  <p className="text-xs font-mono">Buyer: {tx.buyerPkh}</p>
-                  <p className="text-xs font-mono">Seller: {tx.sellerPkh}</p>
-                </div>
+                <p className="text-xs font-mono text-[#71717A] mt-2">
+                  From: {tx.sender}
+                </p>
               </div>
               <div className="text-right">
-                <p className="font-medium">{parseInt(tx.amount) / 1000000} ADA</p>
-                <Badge variant={
-                  tx.status === 'completed' ? 'default' :
-                  tx.status === 'refunded' ? 'destructive' :
-                  'secondary'
-                }>
-                  {tx.status}
-                </Badge>
-                <div className="mt-2">
-                  <Link 
-                    href={`https://preprod.cardanoscan.io/transaction/${tx.txHash}`}
-                    target="_blank"
-                    className="text-xs text-primary hover:underline flex items-center gap-1 justify-end"
-                  >
-                    View Transaction
-                    <ExternalLink className="h-3 w-3" />
-                  </Link>
-                </div>
+                <p className="font-medium text-white">
+                  {(tx.amount / 1000000).toFixed(2)} ₳
+                </p>
               </div>
             </div>
-          </Card>
+          </div>
         ))}
 
-        {transactions.length === 0 && (
-          <div className="text-center text-muted-foreground py-8">
+        {(!transactions || transactions.length === 0) && (
+          <div className="text-center text-[#71717A] py-8">
             No transactions found
           </div>
         )}

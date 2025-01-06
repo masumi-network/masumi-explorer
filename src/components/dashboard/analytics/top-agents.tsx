@@ -10,12 +10,13 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, ExternalLink, MessageSquare, ArrowRight, ExternalLinkIcon, Check, X } from "lucide-react";
+import { MoreHorizontal, ExternalLink, MessageSquare, ArrowRight, ExternalLinkIcon, Check, X, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { fetchFromBlockfrost } from "@/lib/blockfrost";
 import { useNetwork } from "@/context/network-context";
 import { Card } from "@/components/ui/card";
+import { useTopAgents } from '@/hooks/use-top-agents';
 
 interface Agent {
   asset: string;
@@ -29,78 +30,19 @@ interface Agent {
 }
 
 export default function TopAgents({ className, ...props }: any) {
-  const [agents, setAgents] = useState<Agent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { config } = useNetwork();
+  const { agents, isLoading } = useTopAgents();
 
-  const fetchAgents = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Add logging to debug the response
-      console.log('Fetching assets for policy:', config.policyId);
-      const assets = await fetchFromBlockfrost(
-        `/assets/policy/${config.policyId}`,
-        config
-      );
-      console.log('Assets response:', assets);
+  // Sort agents by registration date (newest first)
+  const sortedAgents = [...(agents || [])].sort((a, b) => {
+    const dateA = new Date(a.created_at || 0);
+    const dateB = new Date(b.created_at || 0);
+    return dateB.getTime() - dateA.getTime();
+  });
 
-      // Process in batches
-      const processedAgents = await Promise.all(
-        assets.map(async (asset: any) => {
-          const assetDetails = await fetchFromBlockfrost(
-            `/assets/${asset.asset}`,
-            config
-          );
-          console.log('Asset details:', assetDetails);
-
-          const txDetails = await fetchFromBlockfrost(
-            `/txs/${assetDetails.initial_mint_tx_hash}`,
-            config
-          );
-          
-          return {
-            asset: asset.asset,
-            name: assetDetails.onchain_metadata?.name || 'Unnamed Agent',
-            description: assetDetails.onchain_metadata?.description || 'No description available',
-            authorName: assetDetails.onchain_metadata?.author?.name || 'Unknown Author',
-            registeredAt: new Date(txDetails.block_time * 1000).toLocaleDateString(),
-            requests: Math.floor(Math.random() * 20000) + 5000,
-            identityVerified: assetDetails.onchain_metadata?.identity_verified || false,
-            metadataCorrect: true,
-          };
-        })
-      );
-
-      setAgents(processedAgents);
-    } catch (error) {
-      console.error('Top Agents Error:', error);
-      setError('Failed to fetch agents');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (config.blockfrostApiKey) {
-      fetchAgents();
-    }
-  }, [config]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="p-6 text-center">
         <p className="text-muted-foreground">Loading agents...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6 text-center text-red-500">
-        Error loading agents: {error}
       </div>
     );
   }
@@ -113,18 +55,15 @@ export default function TopAgents({ className, ...props }: any) {
             <h2 className="text-lg font-medium text-white">Latest AI Agents</h2>
             <p className="text-sm text-[#71717A]">Recently registered agents on the network</p>
           </div>
-          <Link href="/agents">
-            <Button variant="ghost" size="sm" className="gap-2 text-[#71717A] hover:text-white">
-              View All
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </Link>
+          <Button variant="ghost" size="icon" className="text-[#71717A] hover:text-white">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
         </div>
 
         <div className="overflow-auto h-[400px] -mx-6">
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="border-zinc-800">
                 <TableHead className="w-[400px] pl-6 bg-[#0A0A0A] sticky top-0">AGENT</TableHead>
                 <TableHead className="bg-[#0A0A0A] sticky top-0">AUTHOR</TableHead>
                 <TableHead className="text-center bg-[#0A0A0A] sticky top-0">REGISTERED</TableHead>
@@ -133,7 +72,7 @@ export default function TopAgents({ className, ...props }: any) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {agents.map((agent) => (
+              {sortedAgents.map((agent) => (
                 <TableRow 
                   key={agent.asset} 
                   className="border-zinc-800"

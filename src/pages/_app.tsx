@@ -8,6 +8,18 @@ import { NetworkProvider } from "@/context/network-context";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from 'react';
 import { AppProvider } from '@/context/app-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BlockfrostCacheProvider } from '@/context/blockfrost-cache-context';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  },
+});
 
 export default function App({ Component, pageProps }: AppProps) {
   useEffect(() => {
@@ -31,13 +43,17 @@ export default function App({ Component, pageProps }: AppProps) {
     <AppProvider>
       <TooltipProvider>
         <ThemeProvider attribute="class" defaultTheme="dark">
-          <NetworkProvider>
-            <MeshProvider>
-              <Layout>
-                <Component {...pageProps} />
-              </Layout>
-            </MeshProvider>
-          </NetworkProvider>
+          <QueryClientProvider client={queryClient}>
+            <NetworkProvider>
+              <BlockfrostCacheProvider>
+                <MeshProvider>
+                  <Layout>
+                    <Component {...pageProps} />
+                  </Layout>
+                </MeshProvider>
+              </BlockfrostCacheProvider>
+            </NetworkProvider>
+          </QueryClientProvider>
         </ThemeProvider>
       </TooltipProvider>
     </AppProvider>

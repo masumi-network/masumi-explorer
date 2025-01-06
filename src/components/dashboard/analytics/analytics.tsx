@@ -10,7 +10,6 @@ import { RefreshCw } from "lucide-react";
 import { CONTRACTS } from "@/config/contracts";
 import { useNetwork } from "@/context/network-context";
 import { cn } from "@/lib/utils";
-import { StatsBox } from "@/components/dashboard/analytics/stats-box";
 
 interface Props {
   className?: string;
@@ -149,103 +148,84 @@ export default function Analytics({ className }: Props) {
   }
 
   return (
-    <div>
-      <Card className="p-6 mb-6">
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-medium text-white">Transaction History</h2>
-              <p className="text-sm text-[#71717A]">Transaction volume over the last 30 days</p>
-            </div>
-            <Button variant="ghost" size="icon" className="text-[#71717A] hover:text-white">
-              <RefreshCw className="h-4 w-4" />
-            </Button>
+    <Card className="p-6">
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-medium text-white">Transaction History</h2>
+            <p className="text-sm text-[#71717A]">Transaction volume over the last 30 days</p>
           </div>
+          <Button variant="ghost" size="icon" className="text-[#71717A] hover:text-white">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
         </div>
-        <div className="h-[200px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart 
-              data={data}
-              margin={{ top: 5, right: 35, bottom: 20, left: 35 }}
-            >
-              <CartesianGrid 
-                strokeDasharray="3 3" 
-                stroke="#1F1F1F"
-                horizontal={true} 
-                vertical={true}
-              />
-              <XAxis
-                dataKey="date"
-                stroke="#71717A"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                dy={10}
-              />
-              <YAxis
-                stroke="#71717A"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => `${value}`}
-                domain={[0, 'auto']}
-                width={35}
-                yAxisId="transactions"
-              />
-              <YAxis
-                stroke="#71717A"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => `${(value / 1000000).toFixed(0)}k`}
-                domain={[0, 'auto']}
-                width={35}
-                orientation="right"
-                yAxisId="volume"
-              />
-              <Tooltip 
-                content={<CustomTooltip />}
-                cursor={{ stroke: '#1F1F1F', strokeWidth: 1, strokeDasharray: '3 3' }}
-              />
-              <Line
-                type="monotone"
-                dataKey="transactions"
-                stroke="#22c55e"
-                strokeWidth={2}
-                dot={false}
-                yAxisId="transactions"
-                activeDot={{ r: 4, fill: "#22c55e" }}
-              />
-              <Line
-                type="monotone"
-                dataKey="volume"
-                stroke="#0ea5e9"
-                strokeWidth={2}
-                dot={false}
-                yAxisId="volume"
-                activeDot={{ r: 4, fill: "#0ea5e9" }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </Card>
-      
-      <div className="grid grid-cols-2 gap-6">
-        <StatsBox
-          title="Total Revenue"
-          subtitle="Lorem ipsum"
-          value="$3,345.12"
-          change={23.46}
-          info="with Node 23"
-        />
-        <StatsBox
-          title="Total Revenue"
-          subtitle="Lorem ipsum"
-          value="$1,345.12"
-          change={-2.65}
-          info="with Node 23"
-        />
       </div>
-    </div>
+      <div className="h-[200px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart 
+            data={data}
+            margin={{ top: 5, right: 35, bottom: 20, left: 35 }}
+          >
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke="#1F1F1F"
+              horizontal={true} 
+              vertical={true}
+            />
+            <XAxis
+              dataKey="date"
+              stroke="#71717A"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              dy={10}
+            />
+            <YAxis
+              stroke="#71717A"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => `${value}`}
+              domain={[0, 'auto']}
+              width={35}
+              yAxisId="transactions"
+            />
+            <YAxis
+              stroke="#71717A"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => `${(value / 1000000).toFixed(0)}k`}
+              domain={[0, 'auto']}
+              width={35}
+              orientation="right"
+              yAxisId="volume"
+            />
+            <Tooltip 
+              content={<CustomTooltip />}
+              cursor={{ stroke: '#1F1F1F', strokeWidth: 1, strokeDasharray: '3 3' }}
+            />
+            <Line
+              type="monotone"
+              dataKey="transactions"
+              stroke="#22c55e"
+              strokeWidth={2}
+              dot={false}
+              yAxisId="transactions"
+              activeDot={{ r: 4, fill: "#22c55e" }}
+            />
+            <Line
+              type="monotone"
+              dataKey="volume"
+              stroke="#0ea5e9"
+              strokeWidth={2}
+              dot={false}
+              yAxisId="volume"
+              activeDot={{ r: 4, fill: "#0ea5e9" }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
   );
 }
