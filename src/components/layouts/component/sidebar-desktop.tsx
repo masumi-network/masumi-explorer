@@ -91,7 +91,9 @@ export default function SidebarDesktop({
 
       {!isCollapsed && (
         <div className="p-4 border-t border-zinc-800/50">
-          <CustomCardanoWallet />
+            <div className="[&_button]:w-full [&_button]:rounded-md [&_button]:bg-transparent [&_button]:hover:bg-zinc-900 [&_button]:text-white hover:[&_button]:text-white [&_button]:border [&_button]:border-zinc-800 [&_button]:text-sm [&_button]:font-medium">
+            <CustomCardanoWallet />
+            </div>
         </div>
       )}
     </div>
