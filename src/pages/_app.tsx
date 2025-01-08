@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 import { AppProvider } from '@/context/app-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BlockfrostCacheProvider } from '@/context/blockfrost-cache-context';
+import { useRouter } from 'next/router';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -22,6 +23,8 @@ const queryClient = new QueryClient({
 });
 
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+
   useEffect(() => {
     // Initialize WebAssembly lazily when needed
     const loadWasm = async () => {

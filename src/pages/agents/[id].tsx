@@ -144,6 +144,18 @@ const createTransaction = (data: any): Transaction => {
   };
 };
 
+// Add this interface for better transaction display
+interface TransactionDisplay {
+  txHash: string;
+  amount: number;
+  timestamp: number;
+  status: 'pending' | 'completed' | 'refunded';
+  buyerPkh?: string;
+  sellerPkh?: string;
+  type: 'buy' | 'sell' | 'refund';
+  referenceId: string;
+}
+
 export default function AgentDetails() {
   const router = useRouter();
   const { id } = router.query;
@@ -152,11 +164,11 @@ export default function AgentDetails() {
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [deregistering, setDeregistering] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<string[]>([]);
   const [isDeregistering, setIsDeregistering] = useState(false);
   const [deregistrationTxHash, setDeregistrationTxHash] = useState<string | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<TransactionDisplay[]>([]);
   const [buyerTransactions, setBuyerTransactions] = useState<Transaction[]>([]);
+  const [sellerTransactions, setSellerTransactions] = useState<Transaction[]>([]);
   const { config } = useNetwork();
 
   useEffect(() => {
@@ -232,123 +244,43 @@ export default function AgentDetails() {
       if (!agent?.paymentAddress) return;
 
       try {
-        addDebugInfo('Fetching transactions...');
-        addDebugInfo(`Agent payment address: ${agent.paymentAddress}`);
-        
-        const scriptUtxos = await fetchFromBlockfrost(
-          `/addresses/addr_test1wr3hvt2hw89l6ay85lr0f2nr80tckrnpjr808dxhq39xkssvw7mx8/utxos`,
+        // Get transactions for this specific agent's payment address
+        const addressTxs = await fetchFromBlockfrost(
+          `/addresses/${agent.paymentAddress}/transactions`,
           config
         );
-        addDebugInfo(`Found ${scriptUtxos.length} UTXOs at script address`);
 
-        const agentTransactions = await Promise.all(
-          scriptUtxos.map(async (utxo: any) => {
-            try {
-              addDebugInfo(`Processing UTXO: ${utxo.tx_hash}`);
-              const tx = await fetchFromBlockfrost(`/txs/${utxo.tx_hash}/utxos`, config);
-              
-              const scriptOutput = tx.outputs.find((output: any) => 
-                output.address === 'addr_test1wr3hvt2hw89l6ay85lr0f2nr80tckrnpjr808dxhq39xkssvw7mx8'
-              );
+        const processedTransactions = await Promise.all(
+          addressTxs.map(async (tx: any) => {
+            const txDetails = await fetchFromBlockfrost(`/txs/${tx.tx_hash}/utxos`, config);
+            
+            // Find output to the agent's payment address
+            const relevantOutput = txDetails.outputs.find(
+              (output: any) => output.address === agent.paymentAddress
+            );
 
-              if (!scriptOutput?.data_hash) {
-                addDebugInfo(`No data hash found for tx ${utxo.tx_hash}`);
-                return null;
-              }
-              addDebugInfo(`Found data hash: ${scriptOutput.data_hash}`);
+            if (!relevantOutput) return null;
 
-              // Get the datum from Blockfrost
-              addDebugInfo(`Fetching datum for hash: ${scriptOutput.data_hash}`);
-              const datumResponse = await fetchFromBlockfrost(
-                `/scripts/datum/${scriptOutput.data_hash}`,
-                config
-              );
+            const lovelaceAmount = relevantOutput.amount.find(
+              (a: any) => a.unit === 'lovelace'
+            );
 
-              if (!datumResponse?.json_value) {
-                addDebugInfo(`No datum found for hash ${scriptOutput.data_hash}`);
-                return null;
-              }
-
-              const datum = datumResponse.json_value;
-              addDebugInfo(`Datum fields: ${JSON.stringify(datum.fields, null, 2)}`);
-
-              const sellerPkhFromDatum = datum.fields[1].bytes;
-              const sellerPkhFromAddress = resolvePaymentKeyHash(agent.paymentAddress);
-
-              addDebugInfo(`Seller PKH from datum: ${sellerPkhFromDatum}`);
-              addDebugInfo(`Seller PKH from address: ${sellerPkhFromAddress}`);
-
-              // Check if this transaction belongs to our agent
-              if (sellerPkhFromDatum === sellerPkhFromAddress) {
-                addDebugInfo(`Match found! Transaction belongs to this agent`);
-                const txDetails = await fetchFromBlockfrost(`/txs/${utxo.tx_hash}`, config);
-                
-                const lovelaceAmount = scriptOutput.amount.find((a: any) => a.unit === 'lovelace');
-                if (!lovelaceAmount) {
-                  addDebugInfo(`No lovelace amount found in tx ${utxo.tx_hash}`);
-                  return null;
-                }
-                addDebugInfo(`Amount: ${parseInt(lovelaceAmount.quantity) / 1000000} ADA`);
-
-                const referenceId = Buffer.from(datum.fields[2].bytes, 'hex').toString('utf8');
-                addDebugInfo(`Reference ID: ${referenceId}`);
-
-                return {
-                  txHash: utxo.tx_hash,
-                  amount: lovelaceAmount.quantity,
-                  timestamp: txDetails.block_time,
-                  status: 'pending',
-                  referenceId,
-                  type: 'selling',
-                  buyerPkh: datum.fields[0].bytes,
-                  state: 'locked',
-                  unlockTime: 0,
-                  refundTime: 0,
-                  actions: {
-                    canRequestRefund: false,
-                    canUnlock: false,
-                    canDenyRefund: false,
-                    canWithdrawRefund: false,
-                    canCancelRefundRequest: false,
-                    canDisputeRefund: false,
-                  },
-                };
-              } else {
-                addDebugInfo(`No match - different seller PKH`);
-                addDebugInfo(`Datum PKH: ${sellerPkhFromDatum}`);
-                addDebugInfo(`Address PKH: ${sellerPkhFromAddress}`);
-              }
-
-              return null;
-            } catch (error) {
-              addDebugInfo(`Error processing transaction ${utxo.tx_hash}: ${error}`);
-              if (error instanceof Error) {
-                addDebugInfo(`Error stack: ${error.stack}`);
-              }
-              return null;
-            }
+            return {
+              txHash: tx.tx_hash,
+              amount: lovelaceAmount ? parseInt(lovelaceAmount.quantity) / 1000000 : 0,
+              timestamp: tx.block_time,
+              status: 'completed',
+              referenceId: tx.tx_hash.slice(0, 8),
+              type: 'sell'
+            };
           })
         );
 
-        const validTransactions = agentTransactions
-          .filter(Boolean)
-          .sort((a, b) => b.timestamp - a.timestamp);
-
+        const validTransactions = processedTransactions.filter((tx): tx is TransactionDisplay => tx !== null);
         setTransactions(validTransactions);
-        addDebugInfo(`Found ${validTransactions.length} transactions for this agent`);
-        if (validTransactions.length > 0) {
-          addDebugInfo('Transaction details:');
-          validTransactions.forEach(tx => {
-            addDebugInfo(JSON.stringify(tx, null, 2));
-          });
-        }
 
       } catch (error) {
         console.error('Error fetching transactions:', error);
-        addDebugInfo(`Error fetching transactions: ${error}`);
-        if (error instanceof Error) {
-          addDebugInfo(`Error stack: ${error.stack}`);
-        }
       }
     };
 
@@ -357,16 +289,51 @@ export default function AgentDetails() {
 
   useEffect(() => {
     const checkWalletTransactions = async () => {
-      if (!connected || !wallet) return;
-      
+      if (!connected || !wallet || !transactions.length) return;
+
       try {
         const walletAddress = await wallet.getChangeAddress();
-        const walletPkh = resolvePaymentKeyHash(walletAddress);
-        addDebugInfo(`Checking transactions for wallet PKH: ${walletPkh}`);
+        const walletPkh = await resolvePaymentKeyHash(walletAddress);
+        
+        // Convert TransactionDisplay to Transaction with required fields
+        const convertToTransaction = (tx: TransactionDisplay): Transaction => ({
+          txHash: tx.txHash,
+          amount: tx.amount.toString(),
+          timestamp: tx.timestamp,
+          status: tx.status,
+          referenceId: tx.referenceId,
+          type: tx.type === 'buy' ? 'buying' : 'selling',
+          buyerPkh: tx.buyerPkh || '',
+          state: 'completed', // Default state
+          unlockTime: Date.now() + (60 * 60 * 1000),
+          refundTime: Date.now() + (2 * 60 * 60 * 1000),
+          actions: {
+            canRequestRefund: false,
+            canUnlock: false,
+            canDenyRefund: false,
+            canWithdrawRefund: false,
+            canCancelRefundRequest: false,
+            canDisputeRefund: false,
+          }
+        });
 
-        // Filter transactions where the wallet is the buyer
-        const buyerTxs = transactions.filter(tx => tx.buyerPkh === walletPkh);
+        // Filter and convert buyer transactions
+        const buyerTxs = transactions
+          .filter(tx => 
+            tx.buyerPkh === walletPkh || 
+            (tx.type === 'buy' && tx.sellerPkh !== walletPkh)
+          )
+          .map(convertToTransaction);
         setBuyerTransactions(buyerTxs);
+
+        // Filter and convert seller transactions
+        const sellerTxs = transactions
+          .filter(tx => 
+            tx.sellerPkh === walletPkh || 
+            (tx.type === 'sell' && tx.buyerPkh !== walletPkh)
+          )
+          .map(convertToTransaction);
+        setSellerTransactions(sellerTxs);
       } catch (error) {
         console.error('Error checking wallet transactions:', error);
       }
@@ -375,26 +342,18 @@ export default function AgentDetails() {
     checkWalletTransactions();
   }, [connected, wallet, transactions]);
 
-  const addDebugInfo = (info: string) => {
-    console.log(info);
-    setDebugInfo(prev => [...prev, `${new Date().toISOString()}: ${info}`]);
-  };
-
   const handleDeregister = async () => {
     if (!connected || !agent || !isOwner) return;
     
     try {
       setDeregistering(true);
-      addDebugInfo('Starting deregistration process...');
       
       const POLICY_ID = 'c7842ba56912a2df2f2e1b89f8e11751c6ec2318520f4d312423a272';
-      addDebugInfo(`Using official policy ID: ${POLICY_ID}`);
       
       const paymentContractAddress = 'addr_test1wr3hvt2hw89l6ay85lr0f2nr80tckrnpjr808dxhq39xkssvw7mx8';
       
       // Find UTXO containing the token first
       const utxos = await wallet.getUtxos();
-      addDebugInfo(`Found ${utxos.length} UTXOs`);
       
       if (utxos.length === 0) {
         throw new Error('No UTXOs found for the wallet');
@@ -402,17 +361,17 @@ export default function AgentDetails() {
 
       // Log UTXO details
       utxos.forEach((utxo, index) => {
-        addDebugInfo(`UTXO ${index + 1}:`);
-        addDebugInfo(`  TxHash: ${utxo.input.txHash}`);
-        addDebugInfo(`  OutputIndex: ${utxo.input.outputIndex}`);
+        console.log(`UTXO ${index + 1}:`);
+        console.log(`  TxHash: ${utxo.input.txHash}`);
+        console.log(`  OutputIndex: ${utxo.input.outputIndex}`);
         utxo.output.amount.forEach(amt => {
-          addDebugInfo(`  Amount: ${amt.quantity} ${amt.unit}`);
+          console.log(`  Amount: ${amt.quantity} ${amt.unit}`);
         });
       });
 
       // Find the token UTXO using the correct policy ID
       const fullAssetId = `${POLICY_ID}${agent.asset.slice(56)}`;
-      addDebugInfo(`Looking for asset: ${fullAssetId}`);
+      console.log(`Looking for asset: ${fullAssetId}`);
 
       const tokenUtxo = utxos.find(utxo => 
         utxo.output.amount.some(amt => amt.unit === fullAssetId)
@@ -421,7 +380,6 @@ export default function AgentDetails() {
       if (!tokenUtxo) {
         throw new Error('Token not found in wallet');
       }
-      addDebugInfo('Found token UTXO');
 
       const script: PlutusScript = {
         code: applyParamsToScript(blueprint.validators[0].compiledCode, [
@@ -437,7 +395,7 @@ export default function AgentDetails() {
 
       // Use the correct policy ID and asset name
       const assetName = agent.asset.slice(56);
-      addDebugInfo(`Using Asset Name: ${assetName}`);
+      console.log(`Using Asset Name: ${assetName}`);
 
       // Create transaction with token UTXO
       const tx = new MeshTransaction({ initiator: wallet })
@@ -446,7 +404,7 @@ export default function AgentDetails() {
       tx.isCollateralNeeded = true;
 
       // Setup burning
-      addDebugInfo('Setting up token burning...');
+      console.log('Setting up token burning...');
       tx.txBuilder
         .mintPlutusScript(script.version)
         .mint('-1', POLICY_ID, assetName)
@@ -454,31 +412,30 @@ export default function AgentDetails() {
         .mintRedeemerValue(redeemer.data, 'Mesh');
 
       const address = await wallet.getChangeAddress();
-      addDebugInfo(`Change address: ${address}`);
+      console.log(`Change address: ${address}`);
 
       tx.sendLovelace(address, '5000000')
         .setRequiredSigners([address])
         .setChangeAddress(address);
 
-      addDebugInfo('Transaction configured');
+      console.log('Transaction configured');
 
       // Build and submit
-      addDebugInfo('Building transaction...');
+      console.log('Building transaction...');
       const unsignedTx = await tx.build();
-      addDebugInfo('Transaction built');
+      console.log('Transaction built');
 
       const signedTx = await wallet.signTx(unsignedTx, true);
-      addDebugInfo('Transaction signed');
+      console.log('Transaction signed');
 
       const txHash = await wallet.submitTx(signedTx);
       setDeregistrationTxHash(txHash);
-      addDebugInfo(`Transaction submitted: ${txHash}`);
+      console.log(`Transaction submitted: ${txHash}`);
       
       // Instead of redirecting, show deregistration status
       setIsDeregistering(true);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      addDebugInfo(`ERROR: ${errorMessage}`);
       console.error('Error deregistering agent:', error);
     } finally {
       setDeregistering(false);
@@ -658,54 +615,43 @@ export default function AgentDetails() {
 
   if (loading) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-muted-foreground">Loading agent details...</p>
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-zinc-400">Loading agent details...</p>
       </div>
     );
   }
 
   if (!agent) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-red-500">Agent not found</p>
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-zinc-400">Agent not found</p>
       </div>
     );
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex flex-col gap-4 mb-7">
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => router.back()}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-            <div className="flex items-center gap-3">
-              <div>
-                <h1 className="text-2xl font-semibold">{agent.name}</h1>
-                <p className="text-sm text-muted-foreground">Version {agent.version}</p>
-              </div>
-              {isOwner && (
-                <Badge variant="secondary">
-                  Owned by you
-                </Badge>
-              )}
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Link href="/agents">
+                <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </Link>
+              <h1 className="text-2xl font-semibold text-white">{agent.name}</h1>
             </div>
+            <p className="text-sm text-zinc-400">Agent Details</p>
           </div>
           <div className="flex items-center gap-2">
             {isOwner && (
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 onClick={handleDeregister}
                 disabled={deregistering}
-                className="gap-2"
+                className="gap-2 bg-transparent border border-red-900/50 text-red-500 hover:bg-red-950/50"
               >
                 {deregistering ? (
                   <>Deregistering...</>
@@ -722,21 +668,21 @@ export default function AgentDetails() {
                 <span>
                   {agent.metadataCorrect ? (
                     <Link href={`/agents/${id}/interact`}>
-                      <Button className="gap-2">
+                      <Button className="gap-2 bg-transparent border border-zinc-800 text-white hover:bg-zinc-900">
                         <MessageSquare className="h-4 w-4" />
-                        Interact with Agent
+                        Interact
                       </Button>
                     </Link>
                   ) : (
-                    <Button className="gap-2" disabled>
+                    <Button className="gap-2 bg-zinc-800/50 text-zinc-500 cursor-not-allowed" disabled>
                       <MessageSquare className="h-4 w-4" />
-                      Interact with Agent
+                      Interact
                     </Button>
                   )}
                 </span>
               </TooltipTrigger>
               {!agent.metadataCorrect && (
-                <TooltipContent>
+                <TooltipContent className="bg-zinc-900 border-zinc-800">
                   <p>Interaction disabled: Metadata standards not met</p>
                 </TooltipContent>
               )}
@@ -746,12 +692,17 @@ export default function AgentDetails() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button variant="outline" size="icon">
+              <Button 
+                variant="outline" 
+                size="icon"
+                className="bg-transparent border-zinc-800 text-white hover:bg-zinc-900"
+              >
                 <ExternalLink className="h-4 w-4" />
               </Button>
             </Link>
           </div>
         </div>
+
         {!agent.metadataCorrect && (
           <div className="mb-4">
             <MetadataWarning />
@@ -760,37 +711,47 @@ export default function AgentDetails() {
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-12 gap-7">
+      <div className="grid grid-cols-12 gap-6">
         {/* Left Column */}
         <div className="col-span-12 lg:col-span-8 space-y-6">
-          <Card className="p-6">
-            <Tabs defaultValue="overview">
-              <TabsList>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="activity">Activity</TabsTrigger>
+          <Card className="bg-zinc-900/50 border-zinc-800">
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="bg-zinc-900 border-b border-zinc-800 w-full justify-start h-auto p-0">
+                <TabsTrigger 
+                  value="overview" 
+                  className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2"
+                >
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="activity"
+                  className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2"
+                >
+                  Activity
+                </TabsTrigger>
               </TabsList>
-              
-              <TabsContent value="overview" className="space-y-6">
+
+              <TabsContent value="overview" className="p-6 space-y-6">
                 <div>
-                  <h2 className="text-lg font-medium mb-2">About</h2>
-                  <p className="text-muted-foreground">{agent.description}</p>
+                  <h2 className="text-lg font-medium text-white mb-2">About</h2>
+                  <p className="text-zinc-400">{agent.description}</p>
                 </div>
 
                 {agent.metadataCorrect && (
                   <div>
-                    <h2 className="text-lg font-medium mb-2">Author Information</h2>
+                    <h2 className="text-lg font-medium text-white mb-2">Author Information</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-muted-foreground">Name</p>
-                        <p className="font-medium">{agent.author}</p>
+                        <p className="text-sm text-zinc-500">Name</p>
+                        <p className="text-zinc-200">{agent.author}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Organization</p>
-                        <p className="font-medium">{agent.organization}</p>
+                        <p className="text-sm text-zinc-500">Organization</p>
+                        <p className="text-zinc-200">{agent.organization}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Contact</p>
-                        <p className="font-medium">{agent.authorContact}</p>
+                        <p className="text-sm text-zinc-500">Contact</p>
+                        <p className="text-zinc-200">{agent.authorContact}</p>
                       </div>
                     </div>
                   </div>
@@ -798,15 +759,15 @@ export default function AgentDetails() {
 
                 {agent.metadataCorrect && (
                   <div>
-                    <h2 className="text-lg font-medium mb-2">Technical Details</h2>
+                    <h2 className="text-lg font-medium text-white mb-2">Technical Details</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-muted-foreground">API URL</p>
-                        <p className="font-medium font-mono">{agent.apiUrl}</p>
+                        <p className="text-sm text-zinc-500">API URL</p>
+                        <p className="text-zinc-200 font-mono">{agent.apiUrl}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Requests per Hour</p>
-                        <p className="font-medium">{agent.totalRequests}</p>
+                        <p className="text-sm text-zinc-500">Requests per Hour</p>
+                        <p className="text-zinc-200">{agent.totalRequests}</p>
                       </div>
                     </div>
                   </div>
@@ -814,10 +775,14 @@ export default function AgentDetails() {
 
                 {agent.metadataCorrect && agent.capabilities && agent.capabilities.length > 0 && (
                   <div>
-                    <h2 className="text-lg font-medium mb-2">Tags</h2>
+                    <h2 className="text-lg font-medium text-white mb-2">Tags</h2>
                     <div className="flex flex-wrap gap-2">
                       {agent.capabilities.map((tag, index) => (
-                        <Badge key={index} variant="secondary">
+                        <Badge 
+                          key={index} 
+                          variant="secondary"
+                          className="bg-zinc-800/50 text-zinc-300 border-zinc-700"
+                        >
                           {tag}
                         </Badge>
                       ))}
@@ -825,115 +790,77 @@ export default function AgentDetails() {
                   </div>
                 )}
 
-                {agent.metadataCorrect && agent.legal && (
-                  <div>
-                    <h2 className="text-lg font-medium mb-2">Legal Documentation</h2>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Privacy Policy</p>
-                        <Link 
-                          href={agent.legal["privacy policy"]} 
-                          target="_blank" 
-                          className="text-primary hover:underline"
-                        >
-                          View Policy
-                        </Link>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Terms of Service</p>
-                        <Link 
-                          href={agent.legal.terms} 
-                          target="_blank" 
-                          className="text-primary hover:underline"
-                        >
-                          View Terms
-                        </Link>
-                      </div>
-                      {agent.legal.other && (
-                        <div>
-                          <p className="text-sm text-muted-foreground">Additional Documentation</p>
-                          <Link 
-                            href={agent.legal.other} 
-                            target="_blank" 
-                            className="text-primary hover:underline"
-                          >
-                            View Documentation
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {agent.metadataCorrect && agent.exampleOutput && (
-                  <div>
-                    <h2 className="text-lg font-medium mb-2">Example Output</h2>
-                    <div className="bg-muted p-4 rounded-lg">
-                      <p className="font-mono text-sm break-all">{agent.exampleOutput}</p>
-                    </div>
-                  </div>
-                )}
-
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card className="p-4">
-                    <Activity className="w-4 h-4 text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">Requests per Hour</p>
-                    <p className="text-2xl font-semibold">{agent.totalRequests?.toLocaleString()}</p>
+                  <Card className="bg-zinc-900/50 border-zinc-800 p-4">
+                    <Activity className="w-4 h-4 text-zinc-500 mb-2" />
+                    <p className="text-sm text-zinc-500">Requests per Hour</p>
+                    <p className="text-xl font-semibold text-white">{agent.totalRequests?.toLocaleString()}</p>
                   </Card>
-                  <Card className="p-4">
-                    <Shield className="w-4 h-4 text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">Success Rate</p>
-                    <p className="text-2xl font-semibold">{agent.successRate?.toFixed(1)}%</p>
+                  <Card className="bg-zinc-900/50 border-zinc-800 p-4">
+                    <Shield className="w-4 h-4 text-zinc-500 mb-2" />
+                    <p className="text-sm text-zinc-500">Success Rate</p>
+                    <p className="text-xl font-semibold text-white">{agent.successRate?.toFixed(1)}%</p>
                   </Card>
-                  <Card className="p-4">
-                    <History className="w-4 h-4 text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">Last Active</p>
-                    <p className="text-sm font-medium">{agent.lastActive}</p>
+                  <Card className="bg-zinc-900/50 border-zinc-800 p-4">
+                    <History className="w-4 h-4 text-zinc-500 mb-2" />
+                    <p className="text-sm text-zinc-500">Last Active</p>
+                    <p className="text-sm text-zinc-200">{agent.lastActive}</p>
                   </Card>
                 </div>
               </TabsContent>
 
-              <TabsContent value="activity">
+              <TabsContent value="activity" className="p-6">
                 <div className="space-y-6">
-                  {/* Transactions where this agent is the seller */}
                   <div>
-                    <h2 className="text-lg font-medium mb-4">Agent Transactions</h2>
-                    <div className="space-y-4">
-                      {transactions.length > 0 ? (
-                        transactions.map((tx) => (
-                          <TransactionCard 
-                            key={tx.txHash} 
-                            tx={tx} 
-                            isBuyer={false} 
-                            isSeller={true} 
-                            isAdmin={false} 
-                          />
-                        ))
-                      ) : (
-                        <p className="text-center text-muted-foreground py-4">
-                          No transactions found for this agent
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Transactions where the connected wallet is the buyer */}
-                  {connected && buyerTransactions.length > 0 && (
-                    <div>
-                      <h2 className="text-lg font-medium mb-4">Your Interactions</h2>
+                    <h2 className="text-lg font-medium text-white mb-4">Transaction History</h2>
+                    {transactions.length > 0 ? (
                       <div className="space-y-4">
-                        {buyerTransactions.map((tx) => (
-                          <TransactionCard 
+                        {transactions.map((tx) => (
+                          <Card 
                             key={tx.txHash} 
-                            tx={tx} 
-                            isBuyer={true} 
-                            isSeller={false} 
-                            isAdmin={false} 
-                          />
+                            className="bg-zinc-900/50 border-zinc-800 p-4 hover:bg-zinc-900/70 transition-colors"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <Badge 
+                                    variant="secondary"
+                                    className="bg-zinc-800/50 text-zinc-300 border-zinc-700"
+                                  >
+                                    {tx.type === 'sell' ? 'Received' : 'Sent'}
+                                  </Badge>
+                                  <span className="text-sm text-zinc-400">
+                                    {new Date(tx.timestamp * 1000).toLocaleString()}
+                                  </span>
+                                </div>
+                                <p className="text-sm font-mono text-zinc-500">
+                                  {tx.txHash}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-lg font-medium text-white">
+                                  {tx.amount} ₳
+                                </p>
+                                <Link 
+                                  href={`https://preprod.cardanoscan.io/transaction/${tx.txHash}`}
+                                  target="_blank"
+                                  className="text-xs text-zinc-500 hover:text-zinc-400"
+                                >
+                                  View on Explorer
+                                </Link>
+                              </div>
+                            </div>
+                          </Card>
                         ))}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <Card className="bg-zinc-900/50 border-zinc-800 p-6">
+                        <div className="text-center">
+                          <p className="text-zinc-400">No transactions found for this agent</p>
+                        </div>
+                      </Card>
+                    )}
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
@@ -942,8 +869,8 @@ export default function AgentDetails() {
 
         {/* Right Column */}
         <div className="col-span-12 lg:col-span-4 space-y-6">
-          <Card className="p-6">
-            <h2 className="text-lg font-medium mb-4">Details</h2>
+          <Card className="bg-zinc-900/50 border-zinc-800 p-6">
+            <h2 className="text-lg font-medium text-white mb-4">Details</h2>
             <dl className="space-y-4">
               <div>
                 <dt className="text-sm text-muted-foreground">Author</dt>
@@ -979,8 +906,8 @@ export default function AgentDetails() {
             </dl>
           </Card>
 
-          <Card className="p-6">
-            <h2 className="text-lg font-medium mb-4">Verification</h2>
+          <Card className="bg-zinc-900/50 border-zinc-800 p-6">
+            <h2 className="text-lg font-medium text-white mb-4">Verification</h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm">Identity Verified</span>
@@ -1000,25 +927,16 @@ export default function AgentDetails() {
               </div>
             </div>
           </Card>
-
-          {/* Debug Information */}
-          <Card className="p-6">
-            <h2 className="text-lg font-medium mb-4">Debug Information</h2>
-            <div className="space-y-2 text-xs font-mono max-h-[400px] overflow-y-auto">
-              {debugInfo.map((info, index) => (
-                <div key={index} className="text-muted-foreground">
-                  {info}
-                </div>
-              ))}
-            </div>
-          </Card>
         </div>
       </div>
 
+      {/* Deregistration Notice */}
       {isDeregistering && (
-        <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-yellow-800 mb-2">Agent Deregistration in Progress</h3>
-          <p className="text-sm text-yellow-700">
+        <div className="mb-6 bg-yellow-950/50 border border-yellow-900/50 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-yellow-500 mb-2">
+            Agent Deregistration in Progress
+          </h3>
+          <p className="text-sm text-yellow-400/80">
             This agent is being deregistered. This process may take a few minutes to complete.
             {deregistrationTxHash && (
               <>
@@ -1026,7 +944,7 @@ export default function AgentDetails() {
                 Transaction: <Link 
                   href={`https://preprod.cardanoscan.io/transaction/${deregistrationTxHash}`}
                   target="_blank"
-                  className="underline"
+                  className="text-yellow-500 hover:text-yellow-400 underline"
                 >
                   View on Cardanoscan
                 </Link>

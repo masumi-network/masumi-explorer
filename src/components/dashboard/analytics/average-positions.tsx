@@ -140,9 +140,6 @@ export default function AgentRegistrations({ className }: Props) {
             <h2 className="text-lg font-medium text-zinc-100">Daily Registrations</h2>
             <p className="text-sm text-zinc-500">New agent registrations over the last 7 days</p>
           </div>
-          <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-300">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
         </div>
       </div>
       <div className="h-[200px]">

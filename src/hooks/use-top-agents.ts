@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from 'react';
 import { useBlockfrostCache } from '@/context/blockfrost-cache-context';
 import { useNetwork } from '@/context/network-context';
+import { useEffect, useState } from 'react';
 
 export function useTopAgents() {
   const [agents, setAgents] = useState<any[]>([]);
@@ -13,23 +13,39 @@ export function useTopAgents() {
   useEffect(() => {
     const fetchAgents = async () => {
       try {
-        const assets = await fetchCached(`/assets/policy/${config.policyId}`);
+        setIsLoading(true);
+        
+        // Get all assets under the policy
+        const assets = await fetchCached(
+          `/assets/policy/${config.policyId}`
+        );
+
+        // Fetch details for each asset
         const agentDetails = await Promise.all(
           assets.map(async (asset: any) => {
             const details = await fetchCached(`/assets/${asset.asset}`);
+            const tx = await fetchCached(`/txs/${details.initial_mint_tx_hash}`);
+            
+            // Extract author name from the object
+            const authorData = details.onchain_metadata?.author || {};
+            const authorName = typeof authorData === 'object' ? authorData.name : authorData;
+            
             return {
-              asset: asset.asset,
-              name: details.onchain_metadata?.name || 'Unnamed Agent',
-              description: details.onchain_metadata?.description || 'No description available',
-              authorName: details.onchain_metadata?.author?.name || 'Unknown Author',
-              registeredAt: new Date().toLocaleString(),
-              requests: Math.floor(Math.random() * 20000) + 5000,
-              identityVerified: false,
-              metadataCorrect: true,
+              ...details,
+              block_time: tx.block_time,
+              name: details.onchain_metadata?.name || 'Unknown',
+              description: details.onchain_metadata?.description || 'No description',
+              authorName: authorName || 'Unknown',
+              registeredAt: new Date(tx.block_time * 1000).toLocaleDateString(),
+              identityVerified: details.onchain_metadata?.identityVerified || false,
+              metadataCorrect: true
             };
           })
         );
-        setAgents(agentDetails);
+
+        // Sort by block_time before setting state
+        const sortedAgents = agentDetails.sort((a, b) => b.block_time - a.block_time);
+        setAgents(sortedAgents);
       } catch (error) {
         console.error('Error fetching agents:', error);
       } finally {
@@ -37,8 +53,10 @@ export function useTopAgents() {
       }
     };
 
-    fetchAgents();
-  }, [fetchCached, config.policyId]);
+    if (config.blockfrostApiKey) {
+      fetchAgents();
+    }
+  }, [fetchCached, config]);
 
   return { agents, isLoading };
 } 

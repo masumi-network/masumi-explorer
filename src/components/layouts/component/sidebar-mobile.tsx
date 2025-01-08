@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, Plus } from "lucide-react";
+import { CustomCardanoWallet } from "@/components/ui/cardano-wallet";
 
 const menuItems = [
   { title: 'Dashboard', href: '/' },
@@ -56,6 +57,18 @@ export default function SidebarMobile() {
                 );
               })}
             </nav>
+          </div>
+
+          <div className="p-4 border-t border-zinc-800/50">
+            <Link href="/register-agent" className="w-full">
+              <Button className="w-full bg-transparent hover:bg-zinc-900 text-white rounded-md border border-zinc-800 text-sm font-medium">
+                <Plus className="mr-2 h-4 w-4" />
+                Register New Agent
+              </Button>
+            </Link>
+            <div className="mt-3">
+              <CustomCardanoWallet />
+            </div>
           </div>
         </div>
       </SheetContent>

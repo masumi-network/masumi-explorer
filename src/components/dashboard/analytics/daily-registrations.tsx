@@ -1,3 +1,7 @@
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+// Add any other UI component imports you need
+
 export default function DailyRegistrations() {
   return (
     <Card>

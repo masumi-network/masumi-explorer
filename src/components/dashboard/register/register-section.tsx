@@ -61,6 +61,8 @@ function splitLongString(str: string, maxLength: number = 64): string[] {
 
 interface RegisterSectionProps {
   addDebugInfo: (info: string) => void;
+  onFormChange: (data: any) => void;
+  formData: FormData;
 }
 
 interface FormData {
@@ -85,52 +87,38 @@ interface FormData {
   paymentAddress: string;
 }
 
-export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) {
+// Create a type for nested objects in FormData
+type NestedFormData = {
+  [K in keyof FormData]: FormData[K] extends Record<string, any> 
+    ? { [SubKey: string]: string | number } 
+    : string | number | string[];
+};
+
+export default function RegisterSection({ addDebugInfo, onFormChange, formData }: RegisterSectionProps) {
   const { wallet, connected } = useWallet();
   const [loading, setLoading] = useState(false);
   const [canMint, setCanMint] = useState(true);
   const [pendingTxHash, setPendingTxHash] = useState<string | null>(null);
-  const [formData, setFormData] = useState<FormData>({
-    name: 'Test AI Assistant',
-    description: 'A powerful AI assistant that helps with natural language processing, code generation, and general knowledge queries. Specialized in Cardano blockchain technology.',
-    api_url: 'https://api.masumi.network/agents/test-assistant',
-    example_output: 'QmX7bJqhS7XQMnX3qhV5Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z',
-    version: '1.0.0',
-    author: {
-      name: 'John Doe',
-      contact: 'john@example.com',
-      organization: 'Masumi Labs',
-    },
-    requests_per_hour: 1000,
-    tags: ['AI', 'NLP', 'Code Generation', 'Cardano'],
-    legal: {
-      "privacy policy": 'https://masumi.network/privacy',
-      terms: 'https://masumi.network/terms',
-      other: 'https://masumi.network/legal',
-    },
-    image: 'https://masumi.network/images/test-assistant.png',
-    paymentAddress: '',
-  });
 
-  const handleChange = (parent: string, child: string, value: string | number) => {
-    setFormData((prev) => {
-      // Handle nested objects (author, legal)
-      if (parent === 'author' || parent === 'legal') {
-        return {
-          ...prev,
-          [parent]: {
-            ...prev[parent],
-            [child]: value
-          }
-        };
-      }
-      
-      // Handle top-level fields
-      return {
-        ...prev,
+  const handleChange = (parent: keyof NestedFormData, child: string, value: string | number) => {
+    if (child) {
+      // Handle nested objects (like author, legal)
+      const newFormData = {
+        ...formData,
+        [parent]: {
+          ...(formData[parent] as Record<string, any>),
+          [child]: value
+        }
+      };
+      onFormChange(newFormData);
+    } else {
+      // Handle direct properties
+      const newFormData = {
+        ...formData,
         [parent]: value
       };
-    });
+      onFormChange(newFormData);
+    }
   };
 
   const formatPaymentAddress = (address: string): string | string[] => {
@@ -278,8 +266,10 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
     <Card className="col-span-12 lg:col-span-6">
       <div className="p-6 flex items-start justify-between">
         <div>
-          <h2 className="text-lg font-medium mb-2">Register Agent</h2>
-          <p className="text-sm text-muted-foreground">Register a new agent on Masumi</p>
+          <h2 className="text-lg font-medium text-white">Register AI Agent</h2>
+          <p className="text-sm text-[#71717A]">
+            Join the Masumi Protocol by registering your AI agent on the decentralized marketplace.
+          </p>
         </div>
       </div>
 
@@ -421,10 +411,7 @@ export default function RegisterSection({ addDebugInfo }: RegisterSectionProps) 
               <Input
                 id="paymentAddress"
                 value={formData.paymentAddress}
-                onChange={(e) => setFormData(prev => ({ 
-                  ...prev, 
-                  paymentAddress: e.target.value 
-                }))}
+                onChange={(e) => handleChange('paymentAddress', '', e.target.value)}
                 placeholder="Enter the Cardano address that will receive payments"
               />
               <p className="text-sm text-muted-foreground mt-1">

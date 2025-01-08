@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { fetchFromBlockfrost } from "@/lib/blockfrost";
 import { useEffect, useState } from "react";
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
@@ -155,9 +156,6 @@ export default function Analytics({ className }: Props) {
             <h2 className="text-lg font-medium text-white">Transaction History</h2>
             <p className="text-sm text-[#71717A]">Transaction volume over the last 30 days</p>
           </div>
-          <Button variant="ghost" size="icon" className="text-[#71717A] hover:text-white">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
         </div>
       </div>
       <div className="h-[200px]">

@@ -44,9 +44,6 @@ export default function LatestPayments() {
             <h2 className="text-lg font-medium text-white">Latest Payments</h2>
             <p className="text-sm text-[#71717A]">Recent transactions on the network</p>
           </div>
-          <Button variant="ghost" size="icon" className="text-[#71717A] hover:text-white">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
         </div>
 
         <div className="overflow-auto h-[400px] -mx-6">

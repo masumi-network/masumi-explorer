@@ -18,10 +18,10 @@ export function DashboardContent() {
       {/* Header Section */}
       <div className="flex flex-col gap-4 mb-7">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-zinc-100">Dashboard</h1>
+          <h1 className="text-4xl font-semibold text-zinc-100">Dashboard</h1>
         </div>
-        <p className="text-zinc-500 text-base max-w-2xl">
-          node's description provided by the node...
+        <p className="text-zinc-500 text-lg max-w-3xl">
+          Track and analyze AI agent activities, transactions, and interactions within the Masumi Protocol ecosystem.
         </p>
         <div className="flex items-center gap-4 p-4 bg-zinc-900/50 rounded-lg border border-zinc-800">
           <div className="flex-1">

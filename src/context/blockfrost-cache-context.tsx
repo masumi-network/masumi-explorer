@@ -1,7 +1,6 @@
 "use client";
 
-import { createContext, useContext, useCallback, useState } from 'react';
-import { fetchFromBlockfrost } from '@/lib/blockfrost';
+import { createContext, useContext, useCallback } from 'react';
 import { useNetwork } from './network-context';
 
 interface CacheEntry {
@@ -9,50 +8,54 @@ interface CacheEntry {
   timestamp: number;
 }
 
-interface BlockfrostCacheContextType {
-  fetchCached: (endpoint: string, staleTime?: number) => Promise<any>;
-  clearCache: () => void;
-}
-
-const BlockfrostCacheContext = createContext<BlockfrostCacheContextType | null>(null);
-
 const cache = new Map<string, CacheEntry>();
+const CACHE_DURATION = 60 * 1000; // 60 seconds
+
+export const BlockfrostCacheContext = createContext<{
+  fetchCached: (endpoint: string) => Promise<any>;
+}>({
+  fetchCached: async () => {},
+});
 
 export function BlockfrostCacheProvider({ children }: { children: React.ReactNode }) {
   const { config } = useNetwork();
-  const [, setUpdateTrigger] = useState(0);
 
-  const fetchCached = useCallback(async (endpoint: string, staleTime = 1000 * 60 * 5) => {
-    const cacheKey = `${endpoint}-${config.policyId}`;
+  const fetchCached = useCallback(async (endpoint: string) => {
+    const cacheKey = `${config.blockfrostUrl}${endpoint}`;
     const cached = cache.get(cacheKey);
     const now = Date.now();
 
-    if (cached && (now - cached.timestamp) < staleTime) {
+    if (cached && now - cached.timestamp < CACHE_DURATION) {
       return cached.data;
     }
 
-    const data = await fetchFromBlockfrost(endpoint, config);
-    cache.set(cacheKey, { data, timestamp: now });
-    setUpdateTrigger(prev => prev + 1); // Trigger re-render
-    return data;
+    try {
+      const response = await fetch(`${config.blockfrostUrl}${endpoint}`, {
+        headers: {
+          project_id: config.blockfrostApiKey,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Blockfrost API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      cache.set(cacheKey, { data, timestamp: now });
+      return data;
+    } catch (error) {
+      console.error('Blockfrost fetch error:', error);
+      throw error;
+    }
   }, [config]);
 
-  const clearCache = useCallback(() => {
-    cache.clear();
-    setUpdateTrigger(prev => prev + 1);
-  }, []);
-
   return (
-    <BlockfrostCacheContext.Provider value={{ fetchCached, clearCache }}>
+    <BlockfrostCacheContext.Provider value={{ fetchCached }}>
       {children}
     </BlockfrostCacheContext.Provider>
   );
 }
 
 export function useBlockfrostCache() {
-  const context = useContext(BlockfrostCacheContext);
-  if (!context) {
-    throw new Error('useBlockfrostCache must be used within a BlockfrostCacheProvider');
-  }
-  return context;
+  return useContext(BlockfrostCacheContext);
 } 

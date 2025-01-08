@@ -1,24 +1,21 @@
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import "@/styles/globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { NetworkProvider } from "@/context/network-context";
-import { BlockfrostCacheProvider } from "@/context/blockfrost-cache-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-sans",
 });
 
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: false,
-    },
-  },
-});
+export const metadata: Metadata = {
+  title: "Kōdoumi",
+  description: "Cardano AI Marketplace",
+};
+
+const queryClient = new QueryClient();
 
 export default function RootLayout({
   children,
@@ -26,21 +23,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} font-sans dark`} suppressHydrationWarning>
-      <body>
+    <html lang="en">
+      <body className={`font-sans ${inter.variable}`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          enableSystem={false}
+          enableSystem
           disableTransitionOnChange
         >
           <QueryClientProvider client={queryClient}>
-            <NetworkProvider>
-              <BlockfrostCacheProvider>
-                {children}
-                <Toaster />
-              </BlockfrostCacheProvider>
-            </NetworkProvider>
+            {children}
+            <Toaster />
           </QueryClientProvider>
         </ThemeProvider>
       </body>

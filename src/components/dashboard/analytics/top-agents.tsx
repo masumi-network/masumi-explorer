@@ -32,12 +32,8 @@ interface Agent {
 export default function TopAgents({ className, ...props }: any) {
   const { agents, isLoading } = useTopAgents();
 
-  // Sort agents by registration date (newest first)
-  const sortedAgents = [...(agents || [])].sort((a, b) => {
-    const dateA = new Date(a.created_at || 0);
-    const dateB = new Date(b.created_at || 0);
-    return dateB.getTime() - dateA.getTime();
-  });
+  // Remove the sorting here since it's handled in the hook
+  const sortedAgents = agents || [];
 
   if (isLoading) {
     return (

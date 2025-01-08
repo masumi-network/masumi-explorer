@@ -6,7 +6,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { CustomCardanoWallet } from "@/components/ui/cardano-wallet";
 
 const menuItems = [
   { title: 'Dashboard', href: '/' },
@@ -66,11 +66,6 @@ export default function SidebarDesktop({
 
       {!isCollapsed && (
         <>
-          {/* Section Label */}
-          <div className="px-6 py-4">
-            <p className="text-zinc-500 text-sm">Menu</p>
-          </div>
-
           {/* Main Navigation */}
           <nav className="flex-1 px-3 space-y-2">
             {menuItems.map((item) => {
@@ -94,7 +89,11 @@ export default function SidebarDesktop({
         </>
       )}
 
-      {footer}
+      {!isCollapsed && (
+        <div className="p-4 border-t border-zinc-800/50">
+          <CustomCardanoWallet />
+        </div>
+      )}
     </div>
   );
 }
