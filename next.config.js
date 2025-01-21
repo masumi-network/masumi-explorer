@@ -22,6 +22,12 @@ const nextConfig = {
 
     return config;
   },
+  images: {
+    unoptimized: true,
+    // Or if you want to keep optimization:
+    // remotePatterns: [],
+    // domains: [],
+  },
 }
 
 module.exports = nextConfig; 

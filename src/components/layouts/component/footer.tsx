@@ -54,7 +54,7 @@ export default function Footer() {
               <MessagesSquare className="h-4 w-4" />
             </Link>
             <Link 
-              href="https://github.com/masumi" 
+              href="https://github.com/masumi-network" 
               target="_blank"
               rel="noopener noreferrer"
               className="text-[#71717A] hover:text-white transition-colors"

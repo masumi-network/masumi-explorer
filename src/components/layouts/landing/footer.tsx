@@ -1,48 +1,46 @@
-import ShadcnKit from "@/components/icons/shadcn-kit";
-
 const Footer = () => {
   return (
     <div className="container px-4">
       <div className="flex flex-col md:flex-row items-start justify-between gap-10 mb-16">
         <div className="w-full md:max-w-[420px]">
-          <ShadcnKit className="text-primary w-[212px] h-[50px] mx-auto md:mx-0" />
+          <h2 className="text-2xl font-semibold">Masumi Network</h2>
           <p className="font-medium text-secondary-foreground mt-6">
-            ShadcnKit SaaS template is a powerful and versatile software
-            application that provides a comprehensive framework for building and
-            delivering cloud-based solutions.
+            A decentralized AI agent registry and marketplace built on Cardano, enabling secure and transparent AI service transactions.
           </p>
         </div>
         <div className="w-full md:max-w-[650px] flex flex-col md:flex-row justify-between gap-10">
           <div>
-            <p className="text-xl font-semibold mb-[30px]">Products</p>
+            <p className="text-xl font-semibold mb-[30px]">Resources</p>
             <ul className="flex flex-col gap-5 text-secondary-foreground">
-              <li>Project Management</li>
-              <li>Multi-tenancy</li>
-              <li>Scalability</li>
-              <li>Customization</li>
-              <li>Integration</li>
-              <li>Mobile accessibility</li>
-              <li>Analytics and reporting</li>
+              <li>
+                <a 
+                  href="https://github.com/masumi-network"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary"
+                >
+                  GitHub Repository
+                </a>
+              </li>
+              <li>Documentation</li>
+              <li>API Reference</li>
+              <li>Integration Guide</li>
             </ul>
           </div>
           <div>
             <p className="text-xl font-semibold mb-[30px]">Features</p>
             <ul className="flex flex-col gap-5 text-secondary-foreground">
-              <li>User management</li>
-              <li>Workflow automation</li>
-              <li>API access</li>
-              <li>Data visualization</li>
-              <li>Version control</li>
-              <li>Upgrades</li>
-              <li>Billing and invoicing</li>
+              <li>AI Agent Registry</li>
+              <li>Smart Contracts</li>
+              <li>Payment System</li>
+              <li>Identity Verification</li>
             </ul>
           </div>
           <div>
-            <p className="text-xl font-semibold mb-[30px]">Explore</p>
+            <p className="text-xl font-semibold mb-[30px]">Community</p>
             <ul className="flex flex-col gap-5 text-secondary-foreground">
-              <li>Docs</li>
-              <li>Pricing</li>
-              <li>Integrations</li>
+              <li>Discord</li>
+              <li>Twitter</li>
               <li>Blog</li>
               <li>About</li>
             </ul>
@@ -51,7 +49,7 @@ const Footer = () => {
       </div>
 
       <p className="text-lg text-secondary-foreground p-6 text-center">
-        Copyright © 2023 UI-Lib. All rights reserved
+        © {new Date().getFullYear()} Masumi Network. All rights reserved
       </p>
     </div>
   );

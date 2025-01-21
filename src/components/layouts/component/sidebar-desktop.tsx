@@ -39,13 +39,16 @@ export default function SidebarDesktop({
       )}>
         {!isCollapsed && (
           <Link href="/" className="hover:opacity-90 transition-opacity">
-            <Image
-              src="/kodosumi_logo.svg"
-              alt="Kodosumi"
-              width={191}
-              height={32}
-              priority
-            />
+            <div className="w-[120px] h-[32px]">
+              <Image
+                src="/masumi_logo.png"
+                alt="Masumi"
+                width={120}
+                height={32}
+                className="w-full h-full object-contain"
+                unoptimized
+              />
+            </div>
           </Link>
         )}
         <Button 

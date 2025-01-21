@@ -30,7 +30,12 @@ export function DashboardContent() {
               Learn more about the Masumi AI Agent Registry and how to get started
             </p>
           </div>
-          <Link href="https://masumi.network" target="_blank" rel="noopener noreferrer">
+          <Link 
+            href="https://github.com/orgs/masumi-network/repositories" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hover:opacity-90"
+          >
             <Button variant="outline" className="gap-2 border-zinc-800 text-zinc-400 hover:text-zinc-100">
               Learn More
               <ExternalLink className="h-4 w-4" />

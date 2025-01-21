@@ -13,21 +13,20 @@ interface NetworkConfig {
 
 // Add logging to check environment variables
 console.log('Environment Variables:', {
-  preprodKey: process.env.NEXT_PUBLIC_BLOCKFROST_API_KEY_PREPROD ? '[EXISTS]' : '[MISSING]',
-  mainnetKey: process.env.NEXT_PUBLIC_BLOCKFROST_API_KEY_MAINNET ? '[EXISTS]' : '[MISSING]'
+  projectId: process.env.NEXT_PUBLIC_BLOCKFROST_PROJECT_ID ? '[EXISTS]' : '[MISSING]',
 });
 
 const networkConfigs: Record<Network, NetworkConfig> = {
   mainnet: {
     policyId: "",
     contractAddress: "",
-    blockfrostApiKey: process.env.NEXT_PUBLIC_BLOCKFROST_API_KEY_MAINNET || '',
+    blockfrostApiKey: process.env.NEXT_PUBLIC_BLOCKFROST_PROJECT_ID || '',
     blockfrostUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
   },
   preprod: {
-    policyId: "c7842ba56912a2df2f2e1b89f8e11751c6ec2318520f4d312423a272",
-    contractAddress: "addr_test1wr3hvt2hw89l6ay85lr0f2nr80tckrnpjr808dxhq39xkssvw7mx8",
-    blockfrostApiKey: process.env.NEXT_PUBLIC_BLOCKFROST_API_KEY_PREPROD || '',
+    policyId: "2beb0dafc9c0bbfc7385f79972eadd2ea4f027c4cdb732b9a3908ad4",
+    contractAddress: "addr_test1wrm4l7k9qgw9878ymvw223u45fje48tnhqsxk2tewe47z7se03mca",
+    blockfrostApiKey: process.env.NEXT_PUBLIC_BLOCKFROST_PROJECT_ID || '',
     blockfrostUrl: "https://cardano-preprod.blockfrost.io/api/v0",
   },
 };

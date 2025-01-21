@@ -31,7 +31,16 @@ export default function SidebarMobile() {
           {/* Header */}
           <div className="p-6">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/kodosumi_logo.svg" alt="Logo" width={32} height={32} />
+              <div className="w-[120px] h-[32px]">
+                <Image
+                  src="/masumi_logo.png"
+                  alt="Logo"
+                  width={120}
+                  height={32}
+                  className="w-full h-full object-contain"
+                  unoptimized
+                />
+              </div>
               <span className="font-semibold text-lg">Masumi</span>
             </Link>
           </div>
