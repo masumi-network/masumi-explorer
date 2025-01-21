@@ -144,10 +144,14 @@ export default function AgentsPage() {
     const searchTermLower = searchTerm.toLowerCase();
     
     const matchesSearch = 
-      agent.name.toLowerCase().includes(searchTermLower) ||
+      (typeof agent.name === 'string' ? agent.name.toLowerCase() : '')
+        .includes(searchTermLower) ||
       (Array.isArray(agent.description)
-        ? agent.description.some((desc: string) => desc.toLowerCase().includes(searchTermLower))
-        : agent.description.toLowerCase().includes(searchTermLower));
+        ? agent.description.some((desc: string) => 
+            (typeof desc === 'string' ? desc.toLowerCase() : '').includes(searchTermLower)
+          )
+        : (typeof agent.description === 'string' ? agent.description.toLowerCase() : '')
+            .includes(searchTermLower));
 
     const matchesIdentity = 
       identityFilter === "all" ||
