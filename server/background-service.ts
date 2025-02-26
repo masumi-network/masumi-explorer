@@ -4,13 +4,23 @@ import { BlockfrostService } from "./services/blockfrost";
 export function startBackgroundServices() {
   const preprodService = new BlockfrostService("preprod");
 
-  // Schedule transaction fetching every 5 minutes
+  // Schedule transaction and asset fetching every 5 minutes
   cron.schedule("*/5 * * * *", async () => {
-    console.log("Starting scheduled transaction fetch...");
-    await preprodService.fetchLatestTransactions();
-    console.log("Completed scheduled transaction fetch");
+    console.log("Starting scheduled blockchain data fetch...");
+    try {
+      await Promise.all([
+        preprodService.fetchLatestTransactions(),
+        preprodService.fetchLatestAssets()
+      ]);
+      console.log("Completed scheduled blockchain data fetch");
+    } catch (error) {
+      console.error("Error in scheduled blockchain data fetch:", error);
+    }
   });
 
   // Initial fetch on startup
-  preprodService.fetchLatestTransactions().catch(console.error);
+  Promise.all([
+    preprodService.fetchLatestTransactions(),
+    preprodService.fetchLatestAssets()
+  ]).catch(console.error);
 }
