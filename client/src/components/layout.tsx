@@ -18,7 +18,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Header */}
       <header className="border-b sticky top-0 bg-background z-50">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center h-16">
             <div className="flex items-center gap-4">
               <Sheet open={isNavOpen} onOpenChange={setIsNavOpen}>
                 <SheetTrigger asChild>
@@ -42,13 +42,16 @@ export function Layout({ children }: LayoutProps) {
               </Sheet>
               <h1 className="text-xl font-semibold">Analytics Dashboard</h1>
             </div>
-            
+
             {/* Search Bar */}
-            <div className="flex-1 max-w-xl mx-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+            <div className="flex-1 max-w-3xl mx-auto px-4">
+              <div className="relative group">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                 <Input 
-                  className="pl-10 h-10" 
+                  className="w-full pl-12 h-12 text-lg rounded-full border-2 transition-all duration-200 ease-in-out
+                           group-hover:border-primary/50 group-hover:shadow-md
+                           focus-visible:border-primary focus-visible:shadow-lg
+                           bg-background/95 backdrop-blur-sm" 
                   placeholder="Search anything..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
