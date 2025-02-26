@@ -99,7 +99,11 @@ export function Layout({ children }: LayoutProps) {
 
             {/* Network Selector */}
             <div className="ml-auto flex items-center gap-2">
-              <Select value={selectedNetwork} onValueChange={setSelectedNetwork}>
+              <Select 
+                value={selectedNetwork} 
+                onValueChange={setSelectedNetwork}
+                defaultValue="Preprod"
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select network" />
                 </SelectTrigger>
@@ -189,14 +193,14 @@ export function Layout({ children }: LayoutProps) {
               <CardContent className="py-3 px-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
                   <span className="font-medium">Network Details:</span>
-                  <div className="flex gap-4">
+                  <div className="flex flex-col sm:flex-row gap-4">
                     <span>
                       <span className="text-muted-foreground">Contract:</span>{" "}
-                      <span className="font-mono">{currentConfig.smartContractAddress.slice(0, 12)}...</span>
+                      <span className="font-mono">{currentConfig.smartContractAddress}</span>
                     </span>
                     <span>
                       <span className="text-muted-foreground">Policy ID:</span>{" "}
-                      <span className="font-mono">{currentConfig.policyId.slice(0, 12)}...</span>
+                      <span className="font-mono">{currentConfig.policyId}</span>
                     </span>
                   </div>
                 </div>
