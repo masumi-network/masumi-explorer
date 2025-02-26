@@ -1,11 +1,34 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAgentSchema, insertTransactionSchema } from "@shared/schema";
+import { insertAgentSchema, insertTransactionSchema, insertNetworkConfigSchema } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Network Config endpoints
+  app.get("/api/network-configs", async (_req, res) => {
+    try {
+      const configs = await storage.listNetworkConfigs();
+      res.json(configs);
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/network-configs/:name", async (req, res) => {
+    try {
+      const config = await storage.getNetworkConfig(req.params.name);
+      if (!config) {
+        res.status(404).json({ error: "Network config not found" });
+        return;
+      }
+      res.json(config);
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Agents endpoints
   app.post("/api/agents", async (req, res) => {
     try {
@@ -45,9 +68,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/transactions", async (_req, res) => {
+  app.get("/api/transactions", async (req, res) => {
     try {
-      const transactions = await storage.listTransactions();
+      const network = req.query.network as string | undefined;
+      const transactions = await storage.listTransactions(network);
       res.json(transactions);
     } catch (error) {
       res.status(500).json({ error: "Internal server error" });
@@ -57,6 +81,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add some sample data
   app.post("/api/sample-data", async (_req, res) => {
     try {
+      // Create network configs
+      const networkConfigs = [
+        {
+          name: "Preprod",
+          smartContractAddress: "addr_test1qp9xn6sz8r2z6kmwx5k8zxuvc2jh03n6wej6f8d",
+          policyId: "policy_preprod_123456789",
+        },
+        {
+          name: "Mainnet",
+          smartContractAddress: "addr1qx9xn6sz8r2z6kmwx5k8zxuvc2jh03n6wej6f8d",
+          policyId: "policy_mainnet_987654321",
+        },
+      ];
+
       // Create sample agents
       const sampleAgents = [
         {
@@ -85,17 +123,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sampleTransactions = [
         {
           transactionId: "tx_001",
-          transactionType: "API_CALL"
+          transactionType: "API_CALL",
+          network: "Preprod"
         },
         {
           transactionId: "tx_002",
-          transactionType: "IMAGE_GENERATION"
+          transactionType: "IMAGE_GENERATION",
+          network: "Mainnet"
         },
         {
           transactionId: "tx_003",
-          transactionType: "COMPLETION"
+          transactionType: "COMPLETION",
+          network: "Preprod"
         }
       ];
+
+      for (const config of networkConfigs) {
+        await storage.createNetworkConfig(config);
+      }
 
       for (const agent of sampleAgents) {
         await storage.createAgent(agent);

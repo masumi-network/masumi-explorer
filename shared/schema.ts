@@ -22,6 +22,14 @@ export const transactions = pgTable("transactions", {
   transactionId: text("transaction_id").notNull().unique(),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
   transactionType: text("transaction_type").notNull(),
+  network: text("network").notNull(), // Added network field
+});
+
+export const networkConfigs = pgTable("network_configs", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  smartContractAddress: text("smart_contract_address").notNull(),
+  policyId: text("policy_id").notNull(),
 });
 
 // Insert schemas
@@ -40,6 +48,10 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   timestamp: true,
 });
 
+export const insertNetworkConfigSchema = createInsertSchema(networkConfigs).omit({
+  id: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -49,3 +61,6 @@ export type Agent = typeof agents.$inferSelect;
 
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;
+
+export type InsertNetworkConfig = z.infer<typeof insertNetworkConfigSchema>;
+export type NetworkConfig = typeof networkConfigs.$inferSelect;

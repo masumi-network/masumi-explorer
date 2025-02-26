@@ -11,6 +11,8 @@ import {
   Bar,
 } from "recharts";
 import { Card } from "@/components/ui/card";
+import { NetworkInfo } from "@/components/network-info";
+import { useState } from "react";
 
 interface Transaction {
   timestamp: string;
@@ -22,8 +24,10 @@ interface Agent {
 }
 
 export default function Home() {
+  const [selectedNetwork, setSelectedNetwork] = useState("Preprod");
+
   const { data: transactions = [] } = useQuery<Transaction[]>({
-    queryKey: ["/api/transactions"],
+    queryKey: ["/api/transactions", { network: selectedNetwork }],
   });
 
   const { data: agents = [] } = useQuery<Agent[]>({
@@ -57,6 +61,11 @@ export default function Home() {
 
   return (
     <>
+      <NetworkInfo 
+        selectedNetwork={selectedNetwork}
+        onNetworkChange={setSelectedNetwork}
+      />
+
       {/* Summary Cards */}
       <div className="grid md:grid-cols-2 gap-6 mb-8">
         <Card className="p-6">

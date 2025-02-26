@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
+import { NetworkInfo } from "@/components/network-info";
+import { useState } from "react";
 
 interface Transaction {
   id: number;
@@ -11,13 +13,20 @@ interface Transaction {
 }
 
 export default function Transactions() {
+  const [selectedNetwork, setSelectedNetwork] = useState("Preprod");
+
   const { data: transactions = [] } = useQuery<Transaction[]>({
-    queryKey: ["/api/transactions"],
+    queryKey: ["/api/transactions", { network: selectedNetwork }],
   });
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Transactions</h1>
+
+      <NetworkInfo 
+        selectedNetwork={selectedNetwork}
+        onNetworkChange={setSelectedNetwork}
+      />
 
       <Card>
         <CardHeader>
