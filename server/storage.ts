@@ -15,6 +15,7 @@ export interface IStorage {
 
   // Transaction methods
   getTransaction(id: number): Promise<Transaction | undefined>;
+  getTransactionByHash(hash: string): Promise<Transaction | undefined>;
   listTransactions(network?: string): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
 
@@ -62,6 +63,11 @@ export class DatabaseStorage implements IStorage {
     return transaction;
   }
 
+  async getTransactionByHash(hash: string): Promise<Transaction | undefined> {
+    const [transaction] = await db.select().from(transactions).where(eq(transactions.transactionId, hash));
+    return transaction;
+  }
+
   async listTransactions(network?: string): Promise<Transaction[]> {
     if (network) {
       return await db.select().from(transactions).where(eq(transactions.network, network));
@@ -69,9 +75,9 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(transactions);
   }
 
-  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
-    const [transaction] = await db.insert(transactions).values(insertTransaction).returning();
-    return transaction;
+  async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
+    const [created] = await db.insert(transactions).values(transaction).returning();
+    return created;
   }
 
   // Network Config methods
