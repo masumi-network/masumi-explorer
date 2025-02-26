@@ -1,4 +1,4 @@
-import { users, agents, transactions, type User, type InsertUser, type Agent, type InsertAgent, type Transaction, type InsertTransaction } from "@shared/schema";
+import { users, agents, transactions, networkConfigs, type User, type InsertUser, type Agent, type InsertAgent, type Transaction, type InsertTransaction, type NetworkConfig, type InsertNetworkConfig } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -15,8 +15,13 @@ export interface IStorage {
 
   // Transaction methods
   getTransaction(id: number): Promise<Transaction | undefined>;
-  listTransactions(): Promise<Transaction[]>;
+  listTransactions(network?: string): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+
+  // Network Config methods
+  getNetworkConfig(name: string): Promise<NetworkConfig | undefined>;
+  listNetworkConfigs(): Promise<NetworkConfig[]>;
+  createNetworkConfig(config: InsertNetworkConfig): Promise<NetworkConfig>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -57,13 +62,31 @@ export class DatabaseStorage implements IStorage {
     return transaction;
   }
 
-  async listTransactions(): Promise<Transaction[]> {
+  async listTransactions(network?: string): Promise<Transaction[]> {
+    if (network) {
+      return await db.select().from(transactions).where(eq(transactions.network, network));
+    }
     return await db.select().from(transactions);
   }
 
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
     const [transaction] = await db.insert(transactions).values(insertTransaction).returning();
     return transaction;
+  }
+
+  // Network Config methods
+  async getNetworkConfig(name: string): Promise<NetworkConfig | undefined> {
+    const [config] = await db.select().from(networkConfigs).where(eq(networkConfigs.name, name));
+    return config;
+  }
+
+  async listNetworkConfigs(): Promise<NetworkConfig[]> {
+    return await db.select().from(networkConfigs);
+  }
+
+  async createNetworkConfig(insertConfig: InsertNetworkConfig): Promise<NetworkConfig> {
+    const [config] = await db.insert(networkConfigs).values(insertConfig).returning();
+    return config;
   }
 }
 
