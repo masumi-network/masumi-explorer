@@ -9,6 +9,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -28,17 +29,28 @@ interface Transaction {
   timestamp: string;
 }
 
+interface NetworkConfig {
+  name: string;
+  smartContractAddress: string;
+  policyId: string;
+}
+
 export function Layout({ children }: LayoutProps) {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState("Preprod");
 
   const { data: agents = [] } = useQuery<Agent[]>({
     queryKey: ["/api/agents"],
   });
 
   const { data: transactions = [] } = useQuery<Transaction[]>({
-    queryKey: ["/api/transactions"],
+    queryKey: ["/api/transactions", { network: selectedNetwork }],
+  });
+
+  const { data: networkConfigs = [] } = useQuery<NetworkConfig[]>({
+    queryKey: ["/api/network-configs"],
   });
 
   // Filter results based on search query
@@ -52,6 +64,8 @@ export function Layout({ children }: LayoutProps) {
     transaction.transactionId.toLowerCase().includes(searchQuery.toLowerCase()) ||
     transaction.transactionType.toLowerCase().includes(searchQuery.toLowerCase())
   ).slice(0, 3); // Show only first 3 results
+
+  const currentConfig = networkConfigs.find(config => config.name === selectedNetwork);
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,6 +95,27 @@ export function Layout({ children }: LayoutProps) {
                 </SheetContent>
               </Sheet>
               <h1 className="text-xl font-semibold">Analytics Dashboard</h1>
+            </div>
+
+            {/* Network Selector */}
+            <div className="ml-auto flex items-center gap-2">
+              <Select value={selectedNetwork} onValueChange={setSelectedNetwork}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select network" />
+                </SelectTrigger>
+                <SelectContent>
+                  {networkConfigs.map(config => (
+                    <SelectItem key={config.name} value={config.name}>
+                      {config.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {currentConfig && (
+                <div className="hidden md:block text-sm text-muted-foreground">
+                  <span className="font-mono">{currentConfig.smartContractAddress.slice(0, 8)}...</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -112,7 +147,7 @@ export function Layout({ children }: LayoutProps) {
                     <div className="mb-4">
                       <h3 className="text-sm font-semibold text-muted-foreground mb-2">Agents</h3>
                       {filteredAgents.map((agent) => (
-                        <Link key={agent.id} href={`/agents/${agent.id}`}> {/* Added agent.id to the href */}
+                        <Link key={agent.id} href={`/agents/${agent.id}`}>
                           <div className="p-2 hover:bg-muted/50 rounded-md cursor-pointer">
                             <p className="font-medium">{agent.name}</p>
                             <p className="text-sm text-muted-foreground truncate">{agent.description}</p>
@@ -126,7 +161,7 @@ export function Layout({ children }: LayoutProps) {
                     <div>
                       <h3 className="text-sm font-semibold text-muted-foreground mb-2">Transactions</h3>
                       {filteredTransactions.map((transaction) => (
-                        <Link key={transaction.id} href={`/transactions/${transaction.id}`}> {/* Added transaction.id to the href */}
+                        <Link key={transaction.id} href={`/transactions/${transaction.id}`}>
                           <div className="p-2 hover:bg-muted/50 rounded-md cursor-pointer">
                             <p className="font-medium">{transaction.transactionId}</p>
                             <p className="text-sm text-muted-foreground">{transaction.transactionType}</p>
@@ -145,6 +180,31 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </div>
       </div>
+
+      {/* Network Details Tooltip */}
+      {currentConfig && (
+        <div className="container mx-auto px-4 mb-8">
+          <div className="max-w-3xl mx-auto">
+            <Card className="bg-muted/50">
+              <CardContent className="py-3 px-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
+                  <span className="font-medium">Network Details:</span>
+                  <div className="flex gap-4">
+                    <span>
+                      <span className="text-muted-foreground">Contract:</span>{" "}
+                      <span className="font-mono">{currentConfig.smartContractAddress.slice(0, 12)}...</span>
+                    </span>
+                    <span>
+                      <span className="text-muted-foreground">Policy ID:</span>{" "}
+                      <span className="font-mono">{currentConfig.policyId.slice(0, 12)}...</span>
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
