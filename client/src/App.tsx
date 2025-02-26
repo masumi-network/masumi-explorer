@@ -6,15 +6,18 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Agents from "@/pages/agents";
 import Transactions from "@/pages/transactions";
+import { Layout } from "@/components/layout";
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/agents" component={Agents} />
-      <Route path="/transactions" component={Transactions} />
-      <Route component={NotFound} />
-    </Switch>
+    <Layout>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/agents" component={Agents} />
+        <Route path="/transactions" component={Transactions} />
+        <Route component={NotFound} />
+      </Switch>
+    </Layout>
   );
 }
 
