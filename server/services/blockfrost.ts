@@ -98,8 +98,8 @@ export class BlockfrostService {
 
             const agent = insertAgentSchema.parse({
               name: agentName,
-              description: `Agent from policy ${this.policyId}`,
-              creatorName: "Blockchain",
+              description: assetDetails.onchain_metadata?.description || `Agent from policy ${this.policyId}`,
+              creatorName: assetDetails.onchain_metadata?.creator || "Blockchain",
               metadata: {
                 assetId: asset.asset,
                 quantity: asset.quantity,
