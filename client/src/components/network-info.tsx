@@ -19,11 +19,11 @@ export function NetworkInfo({ selectedNetwork, onNetworkChange }: {
   const currentConfig = networkConfigs.find(config => config.name === selectedNetwork);
 
   return (
-    <Card className="mb-8">
+    <Card className="border-border/40">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle>Network Information</CardTitle>
+        <CardTitle className="text-base font-medium">Network Information</CardTitle>
         <Select value={selectedNetwork} onValueChange={onNetworkChange}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[180px] h-9 bg-background/50 border-border/40">
             <SelectValue placeholder="Select network" />
           </SelectTrigger>
           <SelectContent>
@@ -37,14 +37,20 @@ export function NetworkInfo({ selectedNetwork, onNetworkChange }: {
       </CardHeader>
       <CardContent>
         {currentConfig ? (
-          <div className="space-y-2">
+          <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Smart Contract Address</p>
-              <p className="font-mono text-sm">{currentConfig.smartContractAddress}</p>
+              <p className="text-sm font-medium text-muted-foreground mb-1">Smart Contract Address</p>
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 rounded-full bg-green-500" />
+                <p className="font-mono text-sm truncate">{currentConfig.smartContractAddress}</p>
+              </div>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Policy ID</p>
-              <p className="font-mono text-sm">{currentConfig.policyId}</p>
+              <p className="text-sm font-medium text-muted-foreground mb-1">Policy ID</p>
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 rounded-full bg-blue-500" />
+                <p className="font-mono text-sm truncate">{currentConfig.policyId}</p>
+              </div>
             </div>
           </div>
         ) : (

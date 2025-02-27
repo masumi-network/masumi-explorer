@@ -20,22 +20,24 @@ export default function Transactions() {
   });
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Transactions</h1>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Transactions</h1>
+      </div>
 
       <NetworkInfo 
         selectedNetwork={selectedNetwork}
         onNetworkChange={setSelectedNetwork}
       />
 
-      <Card>
+      <Card className="border-border/40">
         <CardHeader>
           <CardTitle>Recent Transactions</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="hover:bg-muted/5">
                 <TableHead>Transaction ID</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Date</TableHead>
@@ -43,10 +45,14 @@ export default function Transactions() {
             </TableHeader>
             <TableBody>
               {transactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell className="font-mono">{transaction.transactionId}</TableCell>
-                  <TableCell>{transaction.transactionType}</TableCell>
+                <TableRow key={transaction.id} className="hover:bg-muted/5">
+                  <TableCell className="font-mono text-sm">{transaction.transactionId}</TableCell>
                   <TableCell>
+                    <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-muted/30">
+                      {transaction.transactionType}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
                     {format(new Date(transaction.timestamp), 'PPp')}
                   </TableCell>
                 </TableRow>
