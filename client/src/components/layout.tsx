@@ -20,6 +20,7 @@ interface Agent {
   name: string;
   description: string;
   creatorName: string;
+  metadata: Record<string, unknown>;
 }
 
 interface Transaction {
@@ -67,9 +68,9 @@ export function Layout({ children }: LayoutProps) {
   const currentConfig = networkConfigs.find(config => config.name === selectedNetwork);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/95 flex flex-col">
       {/* Header */}
-      <header className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
+      <header className="border-b border-border/40 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-4">
@@ -82,17 +83,17 @@ export function Layout({ children }: LayoutProps) {
                 <SheetContent side="left" className="w-[280px] p-6">
                   <nav className="flex flex-col gap-4 mt-8">
                     <Link href="/">
-                      <Button variant="ghost" className="w-full justify-start text-lg">
+                      <Button variant="ghost" className="w-full justify-start text-lg font-medium">
                         Dashboard
                       </Button>
                     </Link>
                     <Link href="/agents">
-                      <Button variant="ghost" className="w-full justify-start text-lg">
+                      <Button variant="ghost" className="w-full justify-start text-lg font-medium">
                         Agents
                       </Button>
                     </Link>
                     <Link href="/transactions">
-                      <Button variant="ghost" className="w-full justify-start text-lg">
+                      <Button variant="ghost" className="w-full justify-start text-lg font-medium">
                         Transactions
                       </Button>
                     </Link>
@@ -109,7 +110,7 @@ export function Layout({ children }: LayoutProps) {
                 onValueChange={setSelectedNetwork}
                 defaultValue="Preprod"
               >
-                <SelectTrigger className="w-[180px] h-9">
+                <SelectTrigger className="w-[180px] h-9 bg-background/50 border-border/40">
                   <SelectValue placeholder="Select network" />
                 </SelectTrigger>
                 <SelectContent>
@@ -132,7 +133,7 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Network Info Bar */}
       {currentConfig && (
-        <div className="bg-muted/30 border-b">
+        <div className="bg-muted/5 border-b border-border/40">
           <div className="container mx-auto px-4">
             <div className="h-12 flex items-center text-sm">
               <div className="flex items-center gap-6 overflow-hidden">
@@ -142,11 +143,11 @@ export function Layout({ children }: LayoutProps) {
                 </span>
                 <span className="flex gap-2 items-center overflow-hidden">
                   <span className="text-muted-foreground shrink-0">Contract:</span>
-                  <span className="font-mono truncate">{currentConfig.smartContractAddress}</span>
+                  <span className="font-mono truncate text-xs">{currentConfig.smartContractAddress}</span>
                 </span>
                 <span className="hidden md:flex gap-2 items-center overflow-hidden">
                   <span className="text-muted-foreground shrink-0">Policy ID:</span>
-                  <span className="font-mono truncate">{currentConfig.policyId}</span>
+                  <span className="font-mono truncate text-xs">{currentConfig.policyId}</span>
                 </span>
               </div>
             </div>
@@ -160,7 +161,7 @@ export function Layout({ children }: LayoutProps) {
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 transition-colors group-focus-within:text-foreground" />
             <Input 
-              className="w-full pl-12 pr-4 h-11 text-base rounded-full border-2 transition-all duration-200
+              className="w-full pl-12 pr-4 h-11 text-base rounded-full border-2 border-border/40 transition-all duration-200
                         focus-visible:border-primary focus-visible:shadow-[0_0_0_1px_hsl(var(--primary))]
                         bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" 
               placeholder="Search transactions or agents..." 
@@ -173,8 +174,8 @@ export function Layout({ children }: LayoutProps) {
 
             {/* Search Results Preview */}
             {showResults && searchQuery && (
-              <Card className="absolute top-full left-0 right-0 mt-2 shadow-lg overflow-hidden z-50">
-                <CardContent className="p-4 max-h-[70vh] overflow-y-auto divide-y">
+              <Card className="absolute top-full left-0 right-0 mt-2 shadow-lg overflow-hidden z-50 border-border/40 bg-background/95 backdrop-blur-lg">
+                <CardContent className="p-4 max-h-[70vh] overflow-y-auto divide-y divide-border/40">
                   {filteredAgents.length > 0 && (
                     <div className="pb-4">
                       <h3 className="text-sm font-medium text-muted-foreground mb-2">Agents</h3>
@@ -184,6 +185,15 @@ export function Layout({ children }: LayoutProps) {
                             <div className="p-2 hover:bg-muted/50 rounded-md cursor-pointer transition-colors">
                               <p className="font-medium">{agent.name}</p>
                               <p className="text-sm text-muted-foreground truncate">{agent.description}</p>
+                              {agent.metadata?.capabilities && (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {(agent.metadata.capabilities as string[]).map((cap, idx) => (
+                                    <span key={idx} className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">
+                                      {cap}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </Link>
                         ))}
@@ -198,8 +208,12 @@ export function Layout({ children }: LayoutProps) {
                         {filteredTransactions.map((transaction) => (
                           <Link key={transaction.id} href={`/transactions/${transaction.id}`}>
                             <div className="p-2 hover:bg-muted/50 rounded-md cursor-pointer transition-colors">
-                              <p className="font-medium font-mono">{transaction.transactionId}</p>
-                              <p className="text-sm text-muted-foreground">{transaction.transactionType}</p>
+                              <p className="font-medium font-mono text-sm">{transaction.transactionId}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="px-2 py-0.5 bg-muted/50 rounded text-xs">
+                                  {transaction.transactionType}
+                                </span>
+                              </div>
                             </div>
                           </Link>
                         ))}
@@ -225,7 +239,7 @@ export function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-6 mt-auto">
+      <footer className="border-t border-border/40 py-6 mt-auto">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           © 2024 Dashboard. All rights reserved.
         </div>
