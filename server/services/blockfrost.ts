@@ -79,20 +79,37 @@ export class BlockfrostService {
 
       for (const asset of assets) {
         try {
-          // Create or update agent based on the asset
-          const agentName = Buffer.from(asset.asset.slice(56), 'hex').toString('utf8');
-          const agent = insertAgentSchema.parse({
-            name: agentName,
-            description: `Agent from policy ${this.policyId}`,
-            creatorName: "Blockchain",
-            metadata: {
-              assetId: asset.asset,
-              quantity: asset.quantity,
-              capabilities: ["blockchain_interaction"]
+          // Check if agent already exists
+          const existing = await storage.getAgentByAssetId(asset.asset);
+          if (!existing) {
+            // Get detailed asset information
+            const assetDetails = await this.client.getAsset(asset.asset);
+
+            // Extract name from asset details
+            let agentName = "";
+            try {
+              // The asset name is in the second part of the asset ID (after the policy ID)
+              const assetNameHex = asset.asset.slice(56); // Skip policy ID
+              agentName = Buffer.from(assetNameHex, 'hex').toString('utf8');
+            } catch (error) {
+              console.error(`Error decoding asset name for ${asset.asset}:`, error);
+              agentName = `Agent ${asset.asset.slice(0, 8)}`;
             }
-          });
-          await storage.createAgent(agent);
-          console.log(`Processed agent asset: ${agentName}`);
+
+            const agent = insertAgentSchema.parse({
+              name: agentName,
+              description: `Agent from policy ${this.policyId}`,
+              creatorName: "Blockchain",
+              metadata: {
+                assetId: asset.asset,
+                quantity: asset.quantity,
+                onchainMetadata: assetDetails.onchain_metadata,
+                capabilities: ["blockchain_interaction"]
+              }
+            });
+            await storage.createAgent(agent);
+            console.log(`Processed agent asset: ${agentName}`);
+          }
         } catch (error) {
           console.error(`Error processing asset ${asset.asset}:`, error);
         }
