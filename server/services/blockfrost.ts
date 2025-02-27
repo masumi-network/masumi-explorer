@@ -83,7 +83,7 @@ export class BlockfrostService {
           const existing = await storage.getAgentByAssetId(asset.asset);
           if (!existing) {
             // Get detailed asset information
-            const assetDetails = await this.client.getAsset(asset.asset);
+            const assetInfo = await this.client.assetsById(asset.asset);
 
             // Extract name from asset details
             let agentName = "";
@@ -98,17 +98,17 @@ export class BlockfrostService {
 
             const agent = insertAgentSchema.parse({
               name: agentName,
-              description: assetDetails.onchain_metadata?.description || `Agent from policy ${this.policyId}`,
-              creatorName: assetDetails.onchain_metadata?.creator || "Blockchain",
+              description: assetInfo.metadata?.description || `Agent from policy ${this.policyId}`,
+              creatorName: assetInfo.metadata?.creator || "Blockchain",
               metadata: {
                 assetId: asset.asset,
                 quantity: asset.quantity,
-                onchainMetadata: assetDetails.onchain_metadata,
+                onchainMetadata: assetInfo.onchain_metadata || {},
                 capabilities: ["blockchain_interaction"]
               }
             });
             await storage.createAgent(agent);
-            console.log(`Processed agent asset: ${agentName}`);
+            console.log(`Created new agent: ${agentName}`);
           }
         } catch (error) {
           console.error(`Error processing asset ${asset.asset}:`, error);

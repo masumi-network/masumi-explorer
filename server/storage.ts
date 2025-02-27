@@ -1,6 +1,6 @@
 import { users, agents, transactions, networkConfigs, type User, type InsertUser, type Agent, type InsertAgent, type Transaction, type InsertTransaction, type NetworkConfig, type InsertNetworkConfig } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -50,9 +50,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAgentByAssetId(assetId: string): Promise<Agent | undefined> {
-    const [agent] = await db.select()
+    const [agent] = await db
+      .select()
       .from(agents)
-      .where(eq(agents.metadata['assetId'], assetId));
+      .where(sql`${agents.metadata}->>'assetId' = ${assetId}`);
     return agent;
   }
 
@@ -60,9 +61,9 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(agents);
   }
 
-  async createAgent(insertAgent: InsertAgent): Promise<Agent> {
-    const [agent] = await db.insert(agents).values(insertAgent).returning();
-    return agent;
+  async createAgent(agent: InsertAgent): Promise<Agent> {
+    const [created] = await db.insert(agents).values(agent).returning();
+    return created;
   }
 
   // Transaction methods
@@ -98,9 +99,9 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(networkConfigs);
   }
 
-  async createNetworkConfig(insertConfig: InsertNetworkConfig): Promise<NetworkConfig> {
-    const [config] = await db.insert(networkConfigs).values(insertConfig).returning();
-    return config;
+  async createNetworkConfig(config: InsertNetworkConfig): Promise<NetworkConfig> {
+    const [created] = await db.insert(networkConfigs).values(config).returning();
+    return created;
   }
 }
 
