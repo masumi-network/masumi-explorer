@@ -53,7 +53,6 @@ export function Layout({ children }: LayoutProps) {
     queryKey: ["/api/network-configs"],
   });
 
-  // Filter results based on search query
   const filteredAgents = agents.filter((agent) =>
     agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     agent.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -68,11 +67,11 @@ export function Layout({ children }: LayoutProps) {
   const currentConfig = networkConfigs.find(config => config.name === selectedNetwork);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="border-b sticky top-0 bg-background/95 backdrop-blur-sm z-50">
+      <header className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
         <div className="container mx-auto px-4">
-          <div className="flex items-center h-16">
+          <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-4">
               <Sheet open={isNavOpen} onOpenChange={setIsNavOpen}>
                 <SheetTrigger asChild>
@@ -80,31 +79,37 @@ export function Layout({ children }: LayoutProps) {
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-64">
+                <SheetContent side="left" className="w-[280px] p-6">
                   <nav className="flex flex-col gap-4 mt-8">
                     <Link href="/">
-                      <Button variant="ghost" className="justify-start w-full">Dashboard</Button>
+                      <Button variant="ghost" className="w-full justify-start text-lg">
+                        Dashboard
+                      </Button>
                     </Link>
                     <Link href="/agents">
-                      <Button variant="ghost" className="justify-start w-full">Agents</Button>
+                      <Button variant="ghost" className="w-full justify-start text-lg">
+                        Agents
+                      </Button>
                     </Link>
                     <Link href="/transactions">
-                      <Button variant="ghost" className="justify-start w-full">Transactions</Button>
+                      <Button variant="ghost" className="w-full justify-start text-lg">
+                        Transactions
+                      </Button>
                     </Link>
                   </nav>
                 </SheetContent>
               </Sheet>
-              <h1 className="text-xl font-semibold whitespace-nowrap">Analytics Dashboard</h1>
+              <h1 className="text-xl font-semibold tracking-tight">Analytics Dashboard</h1>
             </div>
 
             {/* Network Selector */}
-            <div className="ml-auto flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Select 
                 value={selectedNetwork} 
                 onValueChange={setSelectedNetwork}
                 defaultValue="Preprod"
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px] h-9">
                   <SelectValue placeholder="Select network" />
                 </SelectTrigger>
                 <SelectContent>
@@ -128,15 +133,18 @@ export function Layout({ children }: LayoutProps) {
       {/* Network Info Bar */}
       {currentConfig && (
         <div className="bg-muted/30 border-b">
-          <div className="container mx-auto px-4 py-2">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
-              <span className="font-medium shrink-0">Network:</span>
-              <div className="flex flex-col sm:flex-row gap-4 overflow-hidden">
-                <span className="flex gap-2 items-center">
+          <div className="container mx-auto px-4">
+            <div className="h-12 flex items-center text-sm">
+              <div className="flex items-center gap-6 overflow-hidden">
+                <span className="flex gap-2 items-center whitespace-nowrap">
+                  <span className="text-muted-foreground">Network:</span>
+                  <span className="font-medium">{currentConfig.name}</span>
+                </span>
+                <span className="flex gap-2 items-center overflow-hidden">
                   <span className="text-muted-foreground shrink-0">Contract:</span>
                   <span className="font-mono truncate">{currentConfig.smartContractAddress}</span>
                 </span>
-                <span className="flex gap-2 items-center">
+                <span className="hidden md:flex gap-2 items-center overflow-hidden">
                   <span className="text-muted-foreground shrink-0">Policy ID:</span>
                   <span className="font-mono truncate">{currentConfig.policyId}</span>
                 </span>
@@ -148,13 +156,13 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Search Section */}
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+        <div className="max-w-2xl mx-auto">
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 transition-colors group-focus-within:text-foreground" />
             <Input 
-              className="w-full pl-12 pr-4 h-12 text-lg rounded-full border-2 transition-all duration-200 ease-in-out
-                        focus-visible:border-primary focus-visible:shadow-lg
-                        bg-background/95 backdrop-blur-sm" 
+              className="w-full pl-12 pr-4 h-11 text-base rounded-full border-2 transition-all duration-200
+                        focus-visible:border-primary focus-visible:shadow-[0_0_0_1px_hsl(var(--primary))]
+                        bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" 
               placeholder="Search transactions or agents..." 
               value={searchQuery}
               onChange={(e) => {
@@ -166,37 +174,43 @@ export function Layout({ children }: LayoutProps) {
             {/* Search Results Preview */}
             {showResults && searchQuery && (
               <Card className="absolute top-full left-0 right-0 mt-2 shadow-lg overflow-hidden z-50">
-                <CardContent className="p-4 max-h-[70vh] overflow-y-auto">
+                <CardContent className="p-4 max-h-[70vh] overflow-y-auto divide-y">
                   {filteredAgents.length > 0 && (
-                    <div className="mb-4">
-                      <h3 className="text-sm font-semibold text-muted-foreground mb-2">Agents</h3>
-                      {filteredAgents.map((agent) => (
-                        <Link key={agent.id} href={`/agents/${agent.id}`}>
-                          <div className="p-2 hover:bg-muted/50 rounded-md cursor-pointer">
-                            <p className="font-medium">{agent.name}</p>
-                            <p className="text-sm text-muted-foreground truncate">{agent.description}</p>
-                          </div>
-                        </Link>
-                      ))}
+                    <div className="pb-4">
+                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Agents</h3>
+                      <div className="space-y-1">
+                        {filteredAgents.map((agent) => (
+                          <Link key={agent.id} href={`/agents/${agent.id}`}>
+                            <div className="p-2 hover:bg-muted/50 rounded-md cursor-pointer transition-colors">
+                              <p className="font-medium">{agent.name}</p>
+                              <p className="text-sm text-muted-foreground truncate">{agent.description}</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   )}
 
                   {filteredTransactions.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-muted-foreground mb-2">Transactions</h3>
-                      {filteredTransactions.map((transaction) => (
-                        <Link key={transaction.id} href={`/transactions/${transaction.id}`}>
-                          <div className="p-2 hover:bg-muted/50 rounded-md cursor-pointer">
-                            <p className="font-medium font-mono">{transaction.transactionId}</p>
-                            <p className="text-sm text-muted-foreground">{transaction.transactionType}</p>
-                          </div>
-                        </Link>
-                      ))}
+                    <div className="pt-4">
+                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Transactions</h3>
+                      <div className="space-y-1">
+                        {filteredTransactions.map((transaction) => (
+                          <Link key={transaction.id} href={`/transactions/${transaction.id}`}>
+                            <div className="p-2 hover:bg-muted/50 rounded-md cursor-pointer transition-colors">
+                              <p className="font-medium font-mono">{transaction.transactionId}</p>
+                              <p className="text-sm text-muted-foreground">{transaction.transactionType}</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   )}
 
                   {filteredAgents.length === 0 && filteredTransactions.length === 0 && (
-                    <p className="text-muted-foreground text-center py-4">No results found</p>
+                    <div className="py-8">
+                      <p className="text-muted-foreground text-center">No results found</p>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -206,12 +220,12 @@ export function Layout({ children }: LayoutProps) {
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 pb-8">
+      <main className="container mx-auto px-4 pb-8 flex-1">
         {children}
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-4 mt-auto">
+      <footer className="border-t py-6 mt-auto">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           © 2024 Dashboard. All rights reserved.
         </div>
