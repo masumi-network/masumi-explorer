@@ -58,12 +58,12 @@ export function Layout({ children }: LayoutProps) {
     agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     agent.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     agent.creatorName.toLowerCase().includes(searchQuery.toLowerCase())
-  ).slice(0, 3); // Show only first 3 results
+  ).slice(0, 3);
 
   const filteredTransactions = transactions.filter((transaction) =>
     transaction.transactionId.toLowerCase().includes(searchQuery.toLowerCase()) ||
     transaction.transactionType.toLowerCase().includes(searchQuery.toLowerCase())
-  ).slice(0, 3); // Show only first 3 results
+  ).slice(0, 3);
 
   const currentConfig = networkConfigs.find(config => config.name === selectedNetwork);
 
@@ -76,7 +76,7 @@ export function Layout({ children }: LayoutProps) {
             <div className="flex items-center gap-4">
               <Sheet open={isNavOpen} onOpenChange={setIsNavOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="shrink-0">
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
@@ -94,7 +94,7 @@ export function Layout({ children }: LayoutProps) {
                   </nav>
                 </SheetContent>
               </Sheet>
-              <h1 className="text-xl font-semibold">Analytics Dashboard</h1>
+              <h1 className="text-xl font-semibold whitespace-nowrap">Analytics Dashboard</h1>
             </div>
 
             {/* Network Selector */}
@@ -116,7 +116,7 @@ export function Layout({ children }: LayoutProps) {
                 </SelectContent>
               </Select>
               {currentConfig && (
-                <div className="hidden md:block text-sm text-muted-foreground">
+                <div className="hidden lg:block text-sm text-muted-foreground">
                   <span className="font-mono">{currentConfig.smartContractAddress.slice(0, 8)}...</span>
                 </div>
               )}
@@ -125,17 +125,37 @@ export function Layout({ children }: LayoutProps) {
         </div>
       </header>
 
+      {/* Network Info Bar */}
+      {currentConfig && (
+        <div className="bg-muted/30 border-b">
+          <div className="container mx-auto px-4 py-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
+              <span className="font-medium shrink-0">Network:</span>
+              <div className="flex flex-col sm:flex-row gap-4 overflow-hidden">
+                <span className="flex gap-2 items-center">
+                  <span className="text-muted-foreground shrink-0">Contract:</span>
+                  <span className="font-mono truncate">{currentConfig.smartContractAddress}</span>
+                </span>
+                <span className="flex gap-2 items-center">
+                  <span className="text-muted-foreground shrink-0">Policy ID:</span>
+                  <span className="font-mono truncate">{currentConfig.policyId}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Search Section */}
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
             <Input 
-              className="w-full pl-12 h-14 text-lg rounded-full border-2 transition-all duration-200 ease-in-out
-                       group-hover:border-primary/50 group-hover:shadow-md
-                       focus-visible:border-primary focus-visible:shadow-lg
-                       bg-background/95 backdrop-blur-sm" 
-              placeholder="Search anything..." 
+              className="w-full pl-12 pr-4 h-12 text-lg rounded-full border-2 transition-all duration-200 ease-in-out
+                        focus-visible:border-primary focus-visible:shadow-lg
+                        bg-background/95 backdrop-blur-sm" 
+              placeholder="Search transactions or agents..." 
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -145,8 +165,8 @@ export function Layout({ children }: LayoutProps) {
 
             {/* Search Results Preview */}
             {showResults && searchQuery && (
-              <Card className="absolute top-full left-0 right-0 mt-2 shadow-lg border-2 overflow-hidden">
-                <CardContent className="p-4">
+              <Card className="absolute top-full left-0 right-0 mt-2 shadow-lg overflow-hidden z-50">
+                <CardContent className="p-4 max-h-[70vh] overflow-y-auto">
                   {filteredAgents.length > 0 && (
                     <div className="mb-4">
                       <h3 className="text-sm font-semibold text-muted-foreground mb-2">Agents</h3>
@@ -167,7 +187,7 @@ export function Layout({ children }: LayoutProps) {
                       {filteredTransactions.map((transaction) => (
                         <Link key={transaction.id} href={`/transactions/${transaction.id}`}>
                           <div className="p-2 hover:bg-muted/50 rounded-md cursor-pointer">
-                            <p className="font-medium">{transaction.transactionId}</p>
+                            <p className="font-medium font-mono">{transaction.transactionId}</p>
                             <p className="text-sm text-muted-foreground">{transaction.transactionType}</p>
                           </div>
                         </Link>
@@ -185,38 +205,13 @@ export function Layout({ children }: LayoutProps) {
         </div>
       </div>
 
-      {/* Network Details Tooltip */}
-      {currentConfig && (
-        <div className="container mx-auto px-4 mb-8">
-          <div className="max-w-3xl mx-auto">
-            <Card className="bg-muted/50">
-              <CardContent className="py-3 px-4">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
-                  <span className="font-medium">Network Details:</span>
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <span>
-                      <span className="text-muted-foreground">Contract:</span>{" "}
-                      <span className="font-mono">{currentConfig.smartContractAddress}</span>
-                    </span>
-                    <span>
-                      <span className="text-muted-foreground">Policy ID:</span>{" "}
-                      <span className="font-mono">{currentConfig.policyId}</span>
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      )}
-
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 pb-8">
         {children}
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-4">
+      <footer className="border-t py-4 mt-auto">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           © 2024 Dashboard. All rights reserved.
         </div>
