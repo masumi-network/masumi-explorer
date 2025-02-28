@@ -100,7 +100,13 @@ export function Layout({ children }: LayoutProps) {
                   </nav>
                 </SheetContent>
               </Sheet>
-              <h1 className="text-xl font-semibold tracking-tight">Analytics Dashboard</h1>
+              <h1 className="text-xl font-semibold tracking-tight">
+                <img 
+                  src="/masumi_logo_white.png" 
+                  alt="Masumi" 
+                  className="h-8"
+                />
+              </h1>
             </div>
 
             {/* Network Selector */}
@@ -241,7 +247,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Footer */}
       <footer className="border-t border-border/40 py-6 mt-auto">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          © 2024 Dashboard. All rights reserved.
+          © 2024 Masumi. All rights reserved.
         </div>
       </footer>
     </div>
