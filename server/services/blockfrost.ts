@@ -43,48 +43,15 @@ export class BlockfrostService {
     }
   }
 
-  async fetchLatestTransactions(page = 1): Promise<void> {
-    try {
-      console.log(`[BlockfrostService] Fetching transactions for ${this.config.network}, page ${page}`);
-      const transactions = await this.client.addressesTransactions(this.watchedAddress, {
-        page,
-        count: 100,
-        order: 'desc'
-      });
-
-      for (const tx of transactions) {
-        try {
-          const existing = await storage.getTransactionByHash(tx.tx_hash);
-          if (!existing) {
-            const transaction = insertTransactionSchema.parse({
-              transactionId: tx.tx_hash,
-              transactionType: 'blockchain_tx',
-              network: this.config.network,
-            });
-            await storage.createTransaction(transaction);
-            console.log(`[BlockfrostService] Created new transaction: ${tx.tx_hash}`);
-          }
-        } catch (error) {
-          console.error(`[BlockfrostService] Error processing transaction ${tx.tx_hash}:`, error);
-        }
-      }
-
-      // If we got a full page, check the next page
-      if (transactions.length === 100) {
-        await this.fetchLatestTransactions(page + 1);
-      }
-    } catch (error) {
-      console.error('[BlockfrostService] Error fetching transactions:', error);
-    }
-  }
-
   private async getAssetMintDate(assetId: string): Promise<Date | undefined> {
     try {
       const assetInfo = await this.client.assetsById(assetId);
       if (assetInfo.initial_mint_tx_hash) {
+        // Get the transaction details for the mint
         const txInfo = await this.client.txs(assetInfo.initial_mint_tx_hash);
         if (txInfo.block_time) {
-          return new Date(txInfo.block_time * 1000); // Convert Unix timestamp to JavaScript Date
+          // Convert Unix timestamp to JavaScript Date
+          return new Date(txInfo.block_time * 1000);
         }
       }
     } catch (error) {
@@ -106,13 +73,19 @@ export class BlockfrostService {
 
       for (const asset of assets) {
         try {
-          // Check if agent already exists
+          // Check if we already have this asset
           const existing = await storage.getAgentByAssetId(asset.asset);
           if (!existing) {
-            // Get detailed asset information and mint date
+            // Get detailed asset information
             const assetInfo = await this.client.assetsById(asset.asset);
-            const mintDate = await this.getAssetMintDate(asset.asset);
             console.log(`[BlockfrostService] Asset info for ${asset.asset}:`, assetInfo);
+
+            // Get the mint date from the initial transaction
+            const mintDate = await this.getAssetMintDate(asset.asset);
+            if (!mintDate) {
+              console.error(`[BlockfrostService] Could not get mint date for asset ${asset.asset}`);
+              continue;
+            }
 
             // Get the asset name part (after the policy ID)
             const assetNameHex = asset.asset.slice(this.policyId.length);
@@ -120,8 +93,8 @@ export class BlockfrostService {
 
             const agent = insertAgentSchema.parse({
               name: agentName,
-              description: assetInfo.metadata?.description || `Asset ${asset.asset.slice(0, 8)}`,
-              creatorName: assetInfo.metadata?.creator || "Blockchain",
+              description: assetInfo.onchain_metadata?.description || `Asset ${asset.asset.slice(0, 8)}`,
+              creatorName: assetInfo.onchain_metadata?.creator || "Blockchain",
               metadata: {
                 assetId: asset.asset,
                 quantity: asset.quantity,
@@ -129,10 +102,10 @@ export class BlockfrostService {
                 mintTransaction: assetInfo.initial_mint_tx_hash,
                 capabilities: ["blockchain_interaction"]
               },
-              createdAt: mintDate || new Date() // Use mint date if available, otherwise current date
+              createdAt: mintDate // Use the actual mint date from the blockchain
             });
 
-            console.log(`[BlockfrostService] Creating new agent:`, agent);
+            console.log(`[BlockfrostService] Creating new agent with mint date ${mintDate.toISOString()}:`, agent);
             await storage.createAgent(agent);
             console.log(`[BlockfrostService] Created new agent: ${agentName}`);
           }
@@ -149,6 +122,42 @@ export class BlockfrostService {
     } catch (error) {
       console.error('[BlockfrostService] Error fetching assets:', error);
       console.error(error);
+    }
+  }
+
+  async fetchLatestTransactions(page = 1): Promise<void> {
+    try {
+      console.log(`[BlockfrostService] Fetching transactions for ${this.config.network}, page ${page}`);
+      const transactions = await this.client.addressesTransactions(this.watchedAddress, {
+        page,
+        count: 100,
+        order: 'desc'
+      });
+
+      for (const tx of transactions) {
+        try {
+          const existing = await storage.getTransactionByHash(tx.tx_hash);
+          if (!existing) {
+            const transaction = insertTransactionSchema.parse({
+              transactionId: tx.tx_hash,
+              transactionType: 'blockchain_tx',
+              network: this.config.network,
+              timestamp: new Date(tx.block_time * 1000).toISOString() // Convert block_time to ISO string
+            });
+            await storage.createTransaction(transaction);
+            console.log(`[BlockfrostService] Created new transaction: ${tx.tx_hash}`);
+          }
+        } catch (error) {
+          console.error(`[BlockfrostService] Error processing transaction ${tx.tx_hash}:`, error);
+        }
+      }
+
+      // If we got a full page, check the next page
+      if (transactions.length === 100) {
+        await this.fetchLatestTransactions(page + 1);
+      }
+    } catch (error) {
+      console.error('[BlockfrostService] Error fetching transactions:', error);
     }
   }
 }
