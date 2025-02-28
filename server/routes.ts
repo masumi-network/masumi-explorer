@@ -95,6 +95,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       ];
 
+      // Create sample transactions
+      const sampleTransactions = [
+        {
+          transactionId: "tx_preprod_001",
+          transactionType: "API_CALL",
+          network: "Preprod"
+        },
+        {
+          transactionId: "tx_mainnet_001",
+          transactionType: "ASSET_TRANSFER",
+          network: "Mainnet"
+        }
+      ];
+
       // Create sample agents
       const sampleAgents = [
         {
@@ -119,35 +133,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ];
 
-      // Create sample transactions
-      const sampleTransactions = [
-        {
-          transactionId: "tx_001",
-          transactionType: "API_CALL",
-          network: "Preprod"
-        },
-        {
-          transactionId: "tx_002",
-          transactionType: "IMAGE_GENERATION",
-          network: "Mainnet"
-        },
-        {
-          transactionId: "tx_003",
-          transactionType: "COMPLETION",
-          network: "Preprod"
-        }
-      ];
-
+      // Insert network configs if they don't exist
       for (const config of networkConfigs) {
-        await storage.createNetworkConfig(config);
+        const existing = await storage.getNetworkConfig(config.name);
+        if (!existing) {
+          await storage.createNetworkConfig(config);
+        }
       }
 
+      // Insert sample transactions
+      for (const transaction of sampleTransactions) {
+        const existing = await storage.getTransactionByHash(transaction.transactionId);
+        if (!existing) {
+          await storage.createTransaction(transaction);
+        }
+      }
+
+      //Insert sample agents
       for (const agent of sampleAgents) {
         await storage.createAgent(agent);
-      }
-
-      for (const transaction of sampleTransactions) {
-        await storage.createTransaction(transaction);
       }
 
       res.json({ message: "Sample data created successfully" });
