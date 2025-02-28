@@ -32,9 +32,20 @@ export class BlockfrostService {
       : "";
   }
 
+  private decodeAssetName(assetNameHex: string): string {
+    try {
+      const decoded = Buffer.from(assetNameHex, 'hex').toString('utf8');
+      // Remove any null characters that might cause database issues
+      return decoded.replace(/\0/g, '');
+    } catch (error) {
+      console.error(`Error decoding asset name: ${assetNameHex}`, error);
+      return `Asset ${assetNameHex.slice(0, 8)}`;
+    }
+  }
+
   async fetchLatestTransactions(page = 1): Promise<void> {
     try {
-      console.log(`Fetching transactions for ${this.config.network}, page ${page}`);
+      console.log(`[BlockfrostService] Fetching transactions for ${this.config.network}, page ${page}`);
       const transactions = await this.client.addressesTransactions(this.watchedAddress, {
         page,
         count: 100,
@@ -43,7 +54,6 @@ export class BlockfrostService {
 
       for (const tx of transactions) {
         try {
-          // Check if transaction already exists
           const existing = await storage.getTransactionByHash(tx.tx_hash);
           if (!existing) {
             const transaction = insertTransactionSchema.parse({
@@ -52,10 +62,10 @@ export class BlockfrostService {
               network: this.config.network,
             });
             await storage.createTransaction(transaction);
-            console.log(`Created new transaction: ${tx.tx_hash}`);
+            console.log(`[BlockfrostService] Created new transaction: ${tx.tx_hash}`);
           }
         } catch (error) {
-          console.error(`Error processing transaction ${tx.tx_hash}:`, error);
+          console.error(`[BlockfrostService] Error processing transaction ${tx.tx_hash}:`, error);
         }
       }
 
@@ -64,18 +74,20 @@ export class BlockfrostService {
         await this.fetchLatestTransactions(page + 1);
       }
     } catch (error) {
-      console.error('Error fetching transactions:', error);
+      console.error('[BlockfrostService] Error fetching transactions:', error);
     }
   }
 
   async fetchLatestAssets(page = 1): Promise<void> {
     try {
-      console.log(`Fetching assets for policy ${this.policyId}, page ${page}`);
+      console.log(`[BlockfrostService] Fetching assets for policy ${this.policyId}, page ${page}`);
       const assets = await this.client.assetsPolicyById(this.policyId, {
         page,
         count: 100,
         order: 'desc'
       });
+
+      console.log(`[BlockfrostService] Found ${assets.length} assets`);
 
       for (const asset of assets) {
         try {
@@ -84,21 +96,15 @@ export class BlockfrostService {
           if (!existing) {
             // Get detailed asset information
             const assetInfo = await this.client.assetsById(asset.asset);
+            console.log(`[BlockfrostService] Asset info for ${asset.asset}:`, assetInfo);
 
-            // Extract name from asset details
-            let agentName = "";
-            try {
-              // The asset name is in the second part of the asset ID (after the policy ID)
-              const assetNameHex = asset.asset.slice(56); // Skip policy ID
-              agentName = Buffer.from(assetNameHex, 'hex').toString('utf8');
-            } catch (error) {
-              console.error(`Error decoding asset name for ${asset.asset}:`, error);
-              agentName = `Agent ${asset.asset.slice(0, 8)}`;
-            }
+            // Get the asset name part (after the policy ID)
+            const assetNameHex = asset.asset.slice(this.policyId.length);
+            const agentName = this.decodeAssetName(assetNameHex);
 
             const agent = insertAgentSchema.parse({
               name: agentName,
-              description: assetInfo.metadata?.description || `Agent from policy ${this.policyId}`,
+              description: assetInfo.metadata?.description || `Asset ${asset.asset.slice(0, 8)}`,
               creatorName: assetInfo.metadata?.creator || "Blockchain",
               metadata: {
                 assetId: asset.asset,
@@ -107,11 +113,14 @@ export class BlockfrostService {
                 capabilities: ["blockchain_interaction"]
               }
             });
+
+            console.log(`[BlockfrostService] Creating new agent:`, agent);
             await storage.createAgent(agent);
-            console.log(`Created new agent: ${agentName}`);
+            console.log(`[BlockfrostService] Created new agent: ${agentName}`);
           }
         } catch (error) {
-          console.error(`Error processing asset ${asset.asset}:`, error);
+          console.error(`[BlockfrostService] Error processing asset ${asset.asset}:`, error);
+          console.error(error);
         }
       }
 
@@ -120,7 +129,8 @@ export class BlockfrostService {
         await this.fetchLatestAssets(page + 1);
       }
     } catch (error) {
-      console.error('Error fetching assets:', error);
+      console.error('[BlockfrostService] Error fetching assets:', error);
+      console.error(error);
     }
   }
 }
