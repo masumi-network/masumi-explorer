@@ -21,8 +21,8 @@ export function startBackgroundServices() {
     }
   }
 
-  // Schedule data fetch every 5 minutes
-  cron.schedule("*/5 * * * *", fetchData);
+  // Schedule data fetch every 15 minutes
+  cron.schedule("*/15 * * * *", fetchData);
 
   // Initial fetch on startup
   console.log("[Background Service] Running initial data fetch...");
