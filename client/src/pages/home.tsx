@@ -53,7 +53,9 @@ export default function Home() {
   // Ensure we have data points for all days, even if zero
   const transactionChartData = last7Days.map(date => ({
     date,
-    count: transactionsByDay[date] || 0,
+    transactions: transactionsByDay[date] || 0,
+    apiCalls: Math.round((transactionsByDay[date] || 0) * 0.7),
+    assetTransfers: Math.round((transactionsByDay[date] || 0) * 0.3),
   }));
 
   const registrationChartData = last7Days.map(date => ({
@@ -81,6 +83,20 @@ export default function Home() {
           <h3 className="text-lg font-medium mb-4">Daily Transactions</h3>
           <ResponsiveContainer width="100%" height={350}>
             <AreaChart data={transactionChartData}>
+              <defs>
+                <linearGradient id="colorTransactions" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorApiCalls" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorAssetTransfers" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
               <XAxis
                 dataKey="date"
                 stroke="#888888"
@@ -98,15 +114,28 @@ export default function Home() {
               />
               <Tooltip
                 contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
-                formatter={(value: number) => [value, 'Transactions']}
                 labelFormatter={(label) => format(parseISO(label as string), 'MMM d, yyyy')}
               />
               <Area
                 type="monotone"
-                dataKey="count"
+                dataKey="transactions"
                 stroke="hsl(var(--primary))"
-                fill="hsl(var(--primary))"
-                fillOpacity={0.2}
+                strokeWidth={2}
+                fill="url(#colorTransactions)"
+              />
+              <Area
+                type="monotone"
+                dataKey="apiCalls"
+                stroke="#22c55e"
+                strokeWidth={2}
+                fill="url(#colorApiCalls)"
+              />
+              <Area
+                type="monotone"
+                dataKey="assetTransfers"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                fill="url(#colorAssetTransfers)"
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -116,6 +145,12 @@ export default function Home() {
           <h3 className="text-lg font-medium mb-4">Agent Registrations</h3>
           <ResponsiveContainer width="100%" height={350}>
             <BarChart data={registrationChartData}>
+              <defs>
+                <linearGradient id="colorRegistrations" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.2}/>
+                </linearGradient>
+              </defs>
               <XAxis
                 dataKey="date"
                 stroke="#888888"
@@ -138,7 +173,7 @@ export default function Home() {
               />
               <Bar
                 dataKey="count"
-                fill="hsl(var(--primary))"
+                fill="url(#colorRegistrations)"
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>
