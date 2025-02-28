@@ -18,6 +18,7 @@ interface Transaction {
 }
 
 interface Agent {
+  name: string;
   createdAt: string;
 }
 
@@ -30,11 +31,16 @@ export default function Home() {
     queryKey: ["/api/agents"],
   });
 
-  // Get the last 7 days of data
-  const last7Days = Array.from({ length: 7 }, (_, i) => {
-    const date = subDays(new Date(), i);
-    return format(date, 'yyyy-MM-dd');
-  }).reverse();
+  // Get the date range for the chart (from Feb 20th to now)
+  const startDate = new Date('2025-02-20');
+  const endDate = new Date();
+  const dateRange = [];
+  let currentDate = startDate;
+
+  while (currentDate <= endDate) {
+    dateRange.push(format(currentDate, 'yyyy-MM-dd'));
+    currentDate = new Date(currentDate.setDate(currentDate.getDate() + 1));
+  }
 
   // Process transaction data for the chart
   const transactionsByDay = transactions.reduce((acc: Record<string, number>, transaction) => {
@@ -51,14 +57,14 @@ export default function Home() {
   }, {});
 
   // Ensure we have data points for all days, even if zero
-  const transactionChartData = last7Days.map(date => ({
+  const transactionChartData = dateRange.map(date => ({
     date,
     transactions: transactionsByDay[date] || 0,
     apiCalls: Math.round((transactionsByDay[date] || 0) * 0.7),
     assetTransfers: Math.round((transactionsByDay[date] || 0) * 0.3),
   }));
 
-  const registrationChartData = last7Days.map(date => ({
+  const registrationChartData = dateRange.map(date => ({
     date,
     count: registrationsByDay[date] || 0,
   }));
