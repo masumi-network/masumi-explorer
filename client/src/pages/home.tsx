@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { format, parseISO, subDays } from "date-fns";
+import { format, parseISO } from "date-fns";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -52,6 +52,7 @@ export default function Home() {
   // Process agent registration data for the chart
   const registrationsByDay = agents.reduce((acc: Record<string, number>, agent) => {
     const day = format(parseISO(agent.createdAt), 'yyyy-MM-dd');
+    console.log('Processing agent date:', agent.createdAt, 'formatted as:', day);
     acc[day] = (acc[day] || 0) + 1;
     return acc;
   }, {});
@@ -68,6 +69,8 @@ export default function Home() {
     date,
     count: registrationsByDay[date] || 0,
   }));
+
+  console.log('Registration data:', registrationChartData);
 
   return (
     <div className="space-y-8">
