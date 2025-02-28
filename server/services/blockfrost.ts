@@ -78,6 +78,21 @@ export class BlockfrostService {
     }
   }
 
+  private async getAssetMintDate(assetId: string): Promise<Date | undefined> {
+    try {
+      const assetInfo = await this.client.assetsById(assetId);
+      if (assetInfo.initial_mint_tx_hash) {
+        const txInfo = await this.client.txs(assetInfo.initial_mint_tx_hash);
+        if (txInfo.block_time) {
+          return new Date(txInfo.block_time * 1000); // Convert Unix timestamp to JavaScript Date
+        }
+      }
+    } catch (error) {
+      console.error(`[BlockfrostService] Error getting mint date for asset ${assetId}:`, error);
+    }
+    return undefined;
+  }
+
   async fetchLatestAssets(page = 1): Promise<void> {
     try {
       console.log(`[BlockfrostService] Fetching assets for policy ${this.policyId}, page ${page}`);
@@ -94,8 +109,9 @@ export class BlockfrostService {
           // Check if agent already exists
           const existing = await storage.getAgentByAssetId(asset.asset);
           if (!existing) {
-            // Get detailed asset information
+            // Get detailed asset information and mint date
             const assetInfo = await this.client.assetsById(asset.asset);
+            const mintDate = await this.getAssetMintDate(asset.asset);
             console.log(`[BlockfrostService] Asset info for ${asset.asset}:`, assetInfo);
 
             // Get the asset name part (after the policy ID)
@@ -110,8 +126,10 @@ export class BlockfrostService {
                 assetId: asset.asset,
                 quantity: asset.quantity,
                 onchainMetadata: assetInfo.onchain_metadata || {},
+                mintTransaction: assetInfo.initial_mint_tx_hash,
                 capabilities: ["blockchain_interaction"]
-              }
+              },
+              createdAt: mintDate || new Date() // Use mint date if available, otherwise current date
             });
 
             console.log(`[BlockfrostService] Creating new agent:`, agent);
