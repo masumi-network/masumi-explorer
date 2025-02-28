@@ -79,11 +79,12 @@ export class BlockfrostService {
       // Step 3: Process asset name
       const assetNameHex = asset.asset.slice(this.policyId.length);
       const agentName = this.decodeAssetName(assetNameHex);
-      console.log('[BlockfrostService] Decoded asset name:', agentName);
 
-      // Step 4: Create agent object - handle array metadata
+      // Step 4: Create agent object
       const agent = {
-        name: agentName,
+        name: Array.isArray(assetInfo.onchain_metadata?.name) 
+          ? assetInfo.onchain_metadata.name[0] 
+          : agentName,
         description: Array.isArray(assetInfo.onchain_metadata?.description) 
           ? assetInfo.onchain_metadata.description[0] 
           : (assetInfo.onchain_metadata?.description || `Asset ${asset.asset.slice(0, 8)}`),
@@ -97,7 +98,7 @@ export class BlockfrostService {
           mintTransaction: assetInfo.initial_mint_tx_hash,
           capabilities: ["blockchain_interaction"]
         },
-        createdAt: mintDate
+        createdAt: mintDate // Use the exact mint date from the blockchain
       };
 
       console.log('[BlockfrostService] Final agent object:', {
