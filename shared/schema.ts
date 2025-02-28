@@ -13,7 +13,7 @@ export const agents = pgTable("agents", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   creatorName: text("creator_name").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").notNull(),
   metadata: json("metadata").$type<Record<string, unknown>>().notNull(),
 });
 
@@ -40,7 +40,6 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export const insertAgentSchema = createInsertSchema(agents).omit({
   id: true,
-  createdAt: true,
 });
 
 export const insertTransactionSchema = createInsertSchema(transactions).omit({
