@@ -81,11 +81,15 @@ export class BlockfrostService {
       const agentName = this.decodeAssetName(assetNameHex);
       console.log('[BlockfrostService] Decoded asset name:', agentName);
 
-      // Step 4: Create agent object
-      const agent = insertAgentSchema.parse({
+      // Step 4: Create agent object - handle array metadata
+      const agent = {
         name: agentName,
-        description: assetInfo.onchain_metadata?.description || `Asset ${asset.asset.slice(0, 8)}`,
-        creatorName: assetInfo.onchain_metadata?.creator || "Blockchain",
+        description: Array.isArray(assetInfo.onchain_metadata?.description) 
+          ? assetInfo.onchain_metadata.description[0] 
+          : (assetInfo.onchain_metadata?.description || `Asset ${asset.asset.slice(0, 8)}`),
+        creatorName: Array.isArray(assetInfo.onchain_metadata?.author?.name)
+          ? assetInfo.onchain_metadata.author.name[0]
+          : "Blockchain",
         metadata: {
           assetId: asset.asset,
           quantity: asset.quantity,
@@ -94,7 +98,7 @@ export class BlockfrostService {
           capabilities: ["blockchain_interaction"]
         },
         createdAt: mintDate
-      });
+      };
 
       console.log('[BlockfrostService] Final agent object:', {
         name: agent.name,
@@ -102,9 +106,10 @@ export class BlockfrostService {
         description: agent.description
       });
 
-      return agent;
+      return insertAgentSchema.parse(agent);
     } catch (error) {
       console.error(`[BlockfrostService] Error processing asset ${asset.asset}:`, error);
+      console.error(error);
       return null;
     }
   }
