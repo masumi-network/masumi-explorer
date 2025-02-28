@@ -73,15 +73,16 @@ export class BlockfrostService {
       console.log('[BlockfrostService] Mint transaction details:', {
         hash: txInfo.hash,
         block_time: txInfo.block_time,
-        mint_date: mintDate.toISOString()
+        mint_date: mintDate.toISOString(),
+        mint_date_obj: mintDate
       });
 
       // Step 3: Process asset name
       const assetNameHex = asset.asset.slice(this.policyId.length);
       const agentName = this.decodeAssetName(assetNameHex);
 
-      // Step 4: Create agent object
-      const agent = {
+      // Step 4: Create agent object with explicit date handling
+      const insertData = {
         name: Array.isArray(assetInfo.onchain_metadata?.name) 
           ? assetInfo.onchain_metadata.name[0] 
           : agentName,
@@ -96,18 +97,27 @@ export class BlockfrostService {
           quantity: asset.quantity,
           onchainMetadata: assetInfo.onchain_metadata || {},
           mintTransaction: assetInfo.initial_mint_tx_hash,
-          capabilities: ["blockchain_interaction"]
+          capabilities: ["blockchain_interaction"],
+          originalMintDate: mintDate.toISOString() // Store original mint date in metadata
         },
-        createdAt: mintDate // Use the exact mint date from the blockchain
+        createdAt: mintDate
       };
 
-      console.log('[BlockfrostService] Final agent object:', {
+      console.log('[BlockfrostService] Insert data:', {
+        name: insertData.name,
+        createdAt: insertData.createdAt.toISOString(),
+        metadata: insertData.metadata.originalMintDate
+      });
+
+      const agent = insertAgentSchema.parse(insertData);
+
+      console.log('[BlockfrostService] Parsed agent:', {
         name: agent.name,
         createdAt: agent.createdAt.toISOString(),
         description: agent.description
       });
 
-      return insertAgentSchema.parse(agent);
+      return agent;
     } catch (error) {
       console.error(`[BlockfrostService] Error processing asset ${asset.asset}:`, error);
       console.error(error);
