@@ -65,8 +65,6 @@ export default function Home() {
   const transactionChartData = dateRange.map(date => ({
     date,
     transactions: transactionsByDay[date] || 0,
-    apiCalls: Math.round((transactionsByDay[date] || 0) * 0.7),
-    assetTransfers: Math.round((transactionsByDay[date] || 0) * 0.3),
   }));
 
   const registrationChartData = dateRange.map(date => ({
@@ -99,14 +97,6 @@ export default function Home() {
                   <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
                   <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                 </linearGradient>
-                <linearGradient id="colorApiCalls" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="colorAssetTransfers" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                </linearGradient>
               </defs>
               <XAxis
                 dataKey="date"
@@ -133,20 +123,6 @@ export default function Home() {
                 stroke="hsl(var(--primary))"
                 strokeWidth={2}
                 fill="url(#colorTransactions)"
-              />
-              <Area
-                type="monotone"
-                dataKey="apiCalls"
-                stroke="#22c55e"
-                strokeWidth={2}
-                fill="url(#colorApiCalls)"
-              />
-              <Area
-                type="monotone"
-                dataKey="assetTransfers"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                fill="url(#colorAssetTransfers)"
               />
             </AreaChart>
           </ResponsiveContainer>
