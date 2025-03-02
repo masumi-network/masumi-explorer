@@ -79,7 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add some sample data
+  // Update the sample data creation route
   app.post("/api/sample-data", async (_req, res) => {
     try {
       // Create network configs
@@ -100,28 +100,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sampleTransactions = [
         {
           transactionId: "tx_preprod_001",
-          transactionType: "API_CALL",
-          network: "Preprod"
+          transactionType: "blockchain_tx",
+          network: "Preprod",
+          timestamp: new Date('2025-02-25').toISOString()
+        },
+        {
+          transactionId: "tx_preprod_002",
+          transactionType: "blockchain_tx",
+          network: "Preprod",
+          timestamp: new Date('2025-02-26').toISOString()
         }
       ];
 
       // Create sample agents
       const sampleAgents = [
         {
-          name: "GPT-4 Assistant",
-          description: "Advanced language model for complex tasks",
-          creatorName: "OpenAI",
-          createdAt: new Date(),
+          name: "Preprod Agent 1",
+          description: "Test agent for preprod network",
+          creatorName: "Test Creator",
+          createdAt: new Date('2025-02-25'),
           metadata: {
-            capabilities: ["text generation", "code analysis", "problem solving"],
-            version: "4.0",
-            language: "en",
+            capabilities: ["blockchain_interaction"],
+            network: "Preprod"
+          }
+        },
+        {
+          name: "Preprod Agent 2",
+          description: "Another test agent for preprod network",
+          creatorName: "Test Creator",
+          createdAt: new Date('2025-02-26'),
+          metadata: {
+            capabilities: ["blockchain_interaction"],
             network: "Preprod"
           }
         }
       ];
 
-      // Insert network configs if they don't exist
+      // Insert network configs
       for (const config of networkConfigs) {
         const existing = await storage.getNetworkConfig(config.name);
         if (!existing) {
