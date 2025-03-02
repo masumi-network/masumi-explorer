@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useNetwork } from "@/components/layout";
 
 interface Transaction {
   id: number;
@@ -16,15 +17,18 @@ interface Transaction {
 export default function Transactions() {
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
-  const [selectedNetwork, setSelectedNetwork] = useState("Preprod");
+  const { selectedNetwork } = useNetwork();
 
   const { data: transactions = [] } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions", { network: selectedNetwork }],
   });
 
-  const totalPages = Math.ceil(transactions.length / itemsPerPage);
+  // Filter transactions by the selected network
+  const networkTransactions = transactions.filter(tx => tx.network === selectedNetwork);
+
+  const totalPages = Math.ceil(networkTransactions.length / itemsPerPage);
   const startIndex = (page - 1) * itemsPerPage;
-  const currentPageTransactions = transactions.slice(startIndex, startIndex + itemsPerPage);
+  const currentPageTransactions = networkTransactions.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-8">

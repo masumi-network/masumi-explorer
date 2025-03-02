@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useNetwork } from "@/components/layout";
 
 interface Agent {
   id: number;
@@ -16,14 +17,20 @@ interface Agent {
 export default function Agents() {
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
+  const { selectedNetwork } = useNetwork();
 
   const { data: agents = [] } = useQuery<Agent[]>({
-    queryKey: ["/api/agents"],
+    queryKey: ["/api/agents", { network: selectedNetwork }],
   });
 
-  const totalPages = Math.ceil(agents.length / itemsPerPage);
+  // Filter agents by the selected network
+  const networkAgents = agents.filter(agent => 
+    agent.metadata?.network === selectedNetwork
+  );
+
+  const totalPages = Math.ceil(networkAgents.length / itemsPerPage);
   const startIndex = (page - 1) * itemsPerPage;
-  const currentPageAgents = agents.slice(startIndex, startIndex + itemsPerPage);
+  const currentPageAgents = networkAgents.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-8">
