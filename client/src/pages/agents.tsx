@@ -1,6 +1,8 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface Agent {
   id: number;
@@ -12,9 +14,16 @@ interface Agent {
 }
 
 export default function Agents() {
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 20;
+
   const { data: agents = [] } = useQuery<Agent[]>({
     queryKey: ["/api/agents"],
   });
+
+  const totalPages = Math.ceil(agents.length / itemsPerPage);
+  const startIndex = (page - 1) * itemsPerPage;
+  const currentPageAgents = agents.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-8">
@@ -32,7 +41,7 @@ export default function Agents() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {agents.map((agent) => (
+            {currentPageAgents.map((agent) => (
               <TableRow key={agent.id} className="hover:bg-muted/5">
                 <TableCell className="font-mono text-xs text-muted-foreground">
                   {format(parseISO(agent.createdAt), "MM-dd-yyyy\nHH:mm:ss")}
@@ -52,6 +61,31 @@ export default function Agents() {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          Page {page} of {totalPages}
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );
