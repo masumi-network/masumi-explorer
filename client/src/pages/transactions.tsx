@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface Transaction {
   id: number;
@@ -11,9 +13,16 @@ interface Transaction {
 }
 
 export default function Transactions() {
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 20;
+
   const { data: transactions = [] } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
   });
+
+  const totalPages = Math.ceil(transactions.length / itemsPerPage);
+  const startIndex = (page - 1) * itemsPerPage;
+  const currentPageTransactions = transactions.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-8">
@@ -35,7 +44,7 @@ export default function Transactions() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transactions.map((transaction) => (
+              {currentPageTransactions.map((transaction) => (
                 <TableRow key={transaction.id} className="hover:bg-muted/5">
                   <TableCell className="font-mono text-sm">{transaction.transactionId}</TableCell>
                   <TableCell>
@@ -50,6 +59,31 @@ export default function Transactions() {
               ))}
             </TableBody>
           </Table>
+
+          {/* Pagination Controls */}
+          <div className="mt-4 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Page {page} of {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
