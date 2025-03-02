@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import {
@@ -15,20 +16,24 @@ import { Card } from "@/components/ui/card";
 interface Transaction {
   timestamp: string;
   transactionType: string;
+  network: string;
 }
 
 interface Agent {
   name: string;
   createdAt: string;
+  network: string;
 }
 
 export default function Home() {
+  const [selectedNetwork, setSelectedNetwork] = useState("Preprod");
+
   const { data: transactions = [] } = useQuery<Transaction[]>({
-    queryKey: ["/api/transactions"],
+    queryKey: ["/api/transactions", { network: selectedNetwork }],
   });
 
   const { data: agents = [] } = useQuery<Agent[]>({
-    queryKey: ["/api/agents"],
+    queryKey: ["/api/agents", { network: selectedNetwork }],
   });
 
   // Get the date range for the chart (from Feb 20th to now)
@@ -52,7 +57,6 @@ export default function Home() {
   // Process agent registration data for the chart
   const registrationsByDay = agents.reduce((acc: Record<string, number>, agent) => {
     const day = format(parseISO(agent.createdAt), 'yyyy-MM-dd');
-    console.log('Processing agent date:', agent.createdAt, 'formatted as:', day);
     acc[day] = (acc[day] || 0) + 1;
     return acc;
   }, {});
@@ -69,8 +73,6 @@ export default function Home() {
     date,
     count: registrationsByDay[date] || 0,
   }));
-
-  console.log('Registration data:', registrationChartData);
 
   return (
     <div className="space-y-8">

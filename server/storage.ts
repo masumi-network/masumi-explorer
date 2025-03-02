@@ -11,7 +11,7 @@ export interface IStorage {
   // Agent methods
   getAgent(id: number): Promise<Agent | undefined>;
   getAgentByAssetId(assetId: string): Promise<Agent | undefined>;
-  listAgents(): Promise<Agent[]>;
+  listAgents(network?: string): Promise<Agent[]>;
   createAgent(agent: InsertAgent): Promise<Agent>;
 
   // Transaction methods
@@ -57,7 +57,13 @@ export class DatabaseStorage implements IStorage {
     return agent;
   }
 
-  async listAgents(): Promise<Agent[]> {
+  async listAgents(network?: string): Promise<Agent[]> {
+    if (network) {
+      return await db
+        .select()
+        .from(agents)
+        .where(sql`${agents.metadata}->>'network' = ${network}`);
+    }
     return await db.select().from(agents);
   }
 
