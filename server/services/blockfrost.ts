@@ -49,37 +49,30 @@ export class BlockfrostService {
 
   private async processAsset(asset: any) {
     try {
-      console.log('\n[BlockfrostService] Processing asset:', {
+      console.log(`\n[BlockfrostService][${this.config.network}] Processing asset:`, {
         asset_id: asset.asset,
         quantity: asset.quantity
       });
 
       const assetInfo = await this.client.assetsById(asset.asset);
-      console.log('[BlockfrostService] Asset details:', {
+      console.log(`[BlockfrostService][${this.config.network}] Asset details:`, {
         initial_mint_tx_hash: assetInfo.initial_mint_tx_hash,
         onchain_metadata: assetInfo.onchain_metadata,
         metadata: assetInfo.metadata
       });
 
       if (!assetInfo.initial_mint_tx_hash) {
-        console.error('[BlockfrostService] No mint transaction hash found for asset:', asset.asset);
+        console.error(`[BlockfrostService][${this.config.network}] No mint transaction hash found for asset:`, asset.asset);
         return null;
       }
 
       const txInfo = await this.client.txs(assetInfo.initial_mint_tx_hash);
       if (!txInfo.block_time) {
-        console.error('[BlockfrostService] No block time found for transaction:', assetInfo.initial_mint_tx_hash);
+        console.error(`[BlockfrostService][${this.config.network}] No block time found for transaction:`, assetInfo.initial_mint_tx_hash);
         return null;
       }
 
       const mintDate = new Date(txInfo.block_time * 1000);
-      console.log('[BlockfrostService] Mint transaction details:', {
-        hash: txInfo.hash,
-        block_time: txInfo.block_time,
-        mint_date: mintDate.toISOString(),
-        mint_date_obj: mintDate
-      });
-
       const assetNameHex = asset.asset.slice(this.policyId.length);
       const agentName = this.decodeAssetName(assetNameHex);
 
@@ -100,43 +93,35 @@ export class BlockfrostService {
           mintTransaction: assetInfo.initial_mint_tx_hash,
           capabilities: ["blockchain_interaction"],
           originalMintDate: mintDate.toISOString(),
-          network: this.config.network
+          network: this.config.network // Ensure network is always set in metadata
         },
         createdAt: mintDate
       };
 
-      console.log('[BlockfrostService] Insert data:', {
+      console.log(`[BlockfrostService][${this.config.network}] Created agent data:`, {
         name: insertData.name,
-        createdAt: insertData.createdAt.toISOString(),
-        metadata: insertData.metadata.originalMintDate
+        network: insertData.metadata.network,
+        createdAt: insertData.createdAt.toISOString()
       });
 
       const agent = insertAgentSchema.parse(insertData);
-
-      console.log('[BlockfrostService] Parsed agent:', {
-        name: agent.name,
-        createdAt: agent.createdAt.toISOString(),
-        description: agent.description
-      });
-
       return agent;
     } catch (error) {
-      console.error(`[BlockfrostService] Error processing asset ${asset.asset}:`, error);
-      console.error(error);
+      console.error(`[BlockfrostService][${this.config.network}] Error processing asset ${asset.asset}:`, error);
       return null;
     }
   }
 
   async fetchLatestAssets(page = 1): Promise<void> {
     try {
-      console.log(`[BlockfrostService] Fetching assets for policy ${this.policyId}, page ${page}`);
+      console.log(`[BlockfrostService][${this.config.network}] Fetching assets for policy ${this.policyId}, page ${page}`);
       const assets = await this.client.assetsPolicyById(this.policyId, {
         page,
         count: 100,
         order: 'desc'
       });
 
-      console.log(`[BlockfrostService] Found ${assets.length} assets`);
+      console.log(`[BlockfrostService][${this.config.network}] Found ${assets.length} assets`);
 
       for (const asset of assets) {
         try {
@@ -145,11 +130,11 @@ export class BlockfrostService {
             const agent = await this.processAsset(asset);
             if (agent) {
               await storage.createAgent(agent);
-              console.log(`[BlockfrostService] Created new agent with name: ${agent.name} and date: ${agent.createdAt.toISOString()}`);
+              console.log(`[BlockfrostService][${this.config.network}] Created new agent: ${agent.name}`);
             }
           }
         } catch (error) {
-          console.error(`[BlockfrostService] Error handling asset ${asset.asset}:`, error);
+          console.error(`[BlockfrostService][${this.config.network}] Error handling asset ${asset.asset}:`, error);
         }
       }
 
@@ -157,13 +142,13 @@ export class BlockfrostService {
         await this.fetchLatestAssets(page + 1);
       }
     } catch (error) {
-      console.error('[BlockfrostService] Error fetching assets:', error);
+      console.error(`[BlockfrostService][${this.config.network}] Error fetching assets:`, error);
     }
   }
 
   async fetchLatestTransactions(page = 1): Promise<void> {
     try {
-      console.log(`[BlockfrostService] Fetching transactions for ${this.config.network}, page ${page}`);
+      console.log(`[BlockfrostService][${this.config.network}] Fetching transactions for address ${this.watchedAddress}, page ${page}`);
       const transactions = await this.client.addressesTransactions(this.watchedAddress, {
         page,
         count: 100,
@@ -181,10 +166,10 @@ export class BlockfrostService {
               timestamp: new Date(tx.block_time * 1000).toISOString()
             });
             await storage.createTransaction(transaction);
-            console.log(`[BlockfrostService] Created new transaction: ${tx.tx_hash}`);
+            console.log(`[BlockfrostService][${this.config.network}] Created new transaction: ${tx.tx_hash}`);
           }
         } catch (error) {
-          console.error(`[BlockfrostService] Error processing transaction ${tx.tx_hash}:`, error);
+          console.error(`[BlockfrostService][${this.config.network}] Error processing transaction ${tx.tx_hash}:`, error);
         }
       }
 
@@ -192,7 +177,7 @@ export class BlockfrostService {
         await this.fetchLatestTransactions(page + 1);
       }
     } catch (error) {
-      console.error('[BlockfrostService] Error fetching transactions:', error);
+      console.error(`[BlockfrostService][${this.config.network}] Error fetching transactions:`, error);
     }
   }
 }
