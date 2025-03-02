@@ -1,3 +1,4 @@
+import { useNetwork } from "@/components/layout";
 import { useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
@@ -12,7 +13,6 @@ import {
   Bar,
 } from "recharts";
 import { Card } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Transaction {
   id: number;
@@ -32,7 +32,7 @@ interface Agent {
 }
 
 export default function Home() {
-  const [selectedNetwork, setSelectedNetwork] = useState("Preprod");
+  const { selectedNetwork } = useNetwork();
 
   const { data: transactions = [] } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions", { network: selectedNetwork }],
@@ -84,19 +84,6 @@ export default function Home() {
 
   return (
     <div className="space-y-8">
-      {/* Network Selector */}
-      <div className="flex justify-end">
-        <Select value={selectedNetwork} onValueChange={setSelectedNetwork}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select network" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Preprod">Preprod</SelectItem>
-            <SelectItem value="Mainnet">Mainnet</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Summary Cards */}
       <div className="grid md:grid-cols-2 gap-6">
         <Card className="p-6">
