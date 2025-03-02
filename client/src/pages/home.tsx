@@ -12,6 +12,7 @@ import {
   Bar,
 } from "recharts";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Transaction {
   timestamp: string;
@@ -22,7 +23,9 @@ interface Transaction {
 interface Agent {
   name: string;
   createdAt: string;
-  network: string;
+  metadata: {
+    network: string;
+  };
 }
 
 export default function Home() {
@@ -61,7 +64,7 @@ export default function Home() {
     return acc;
   }, {});
 
-  // Ensure we have data points for all days, even if zero
+  // Create chart data arrays
   const transactionChartData = dateRange.map(date => ({
     date,
     transactions: transactionsByDay[date] || 0,
@@ -74,6 +77,19 @@ export default function Home() {
 
   return (
     <div className="space-y-8">
+      {/* Network Selector */}
+      <div className="flex justify-end">
+        <Select value={selectedNetwork} onValueChange={setSelectedNetwork}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select network" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Preprod">Preprod</SelectItem>
+            <SelectItem value="Mainnet">Mainnet</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid md:grid-cols-2 gap-6">
         <Card className="p-6">
