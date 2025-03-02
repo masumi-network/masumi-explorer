@@ -54,7 +54,6 @@ export class BlockfrostService {
         quantity: asset.quantity
       });
 
-      // Step 1: Get detailed asset information
       const assetInfo = await this.client.assetsById(asset.asset);
       console.log('[BlockfrostService] Asset details:', {
         initial_mint_tx_hash: assetInfo.initial_mint_tx_hash,
@@ -62,7 +61,6 @@ export class BlockfrostService {
         metadata: assetInfo.metadata
       });
 
-      // Step 2: Get mint transaction details
       if (!assetInfo.initial_mint_tx_hash) {
         console.error('[BlockfrostService] No mint transaction hash found for asset:', asset.asset);
         return null;
@@ -82,17 +80,15 @@ export class BlockfrostService {
         mint_date_obj: mintDate
       });
 
-      // Step 3: Process asset name
       const assetNameHex = asset.asset.slice(this.policyId.length);
       const agentName = this.decodeAssetName(assetNameHex);
 
-      // Step 4: Create agent object with explicit date handling
       const insertData = {
-        name: Array.isArray(assetInfo.onchain_metadata?.name) 
-          ? assetInfo.onchain_metadata.name[0] 
+        name: Array.isArray(assetInfo.onchain_metadata?.name)
+          ? assetInfo.onchain_metadata.name[0]
           : agentName,
-        description: Array.isArray(assetInfo.onchain_metadata?.description) 
-          ? assetInfo.onchain_metadata.description[0] 
+        description: Array.isArray(assetInfo.onchain_metadata?.description)
+          ? assetInfo.onchain_metadata.description[0]
           : (assetInfo.onchain_metadata?.description || `Asset ${asset.asset.slice(0, 8)}`),
         creatorName: Array.isArray(assetInfo.onchain_metadata?.author?.name)
           ? assetInfo.onchain_metadata.author.name[0]
@@ -103,7 +99,8 @@ export class BlockfrostService {
           onchainMetadata: assetInfo.onchain_metadata || {},
           mintTransaction: assetInfo.initial_mint_tx_hash,
           capabilities: ["blockchain_interaction"],
-          originalMintDate: mintDate.toISOString() // Store original mint date in metadata
+          originalMintDate: mintDate.toISOString(),
+          network: this.config.network
         },
         createdAt: mintDate
       };
