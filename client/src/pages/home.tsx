@@ -46,30 +46,41 @@ export default function Home() {
   const networkTransactions = transactions.filter(tx => tx.network === selectedNetwork);
   const networkAgents = agents.filter(agent => agent.metadata?.network === selectedNetwork);
 
-  // Get the date range for the chart (from Feb 20th to now)
-  const startDate = new Date('2025-02-20');
+  // Get the date range for the chart (last 7 days)
   const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(endDate.getDate() - 7);
+
   const dateRange = [];
-  let currentDate = startDate;
+  let currentDate = new Date(startDate);
 
   while (currentDate <= endDate) {
     dateRange.push(format(currentDate, 'yyyy-MM-dd'));
     currentDate = new Date(currentDate.setDate(currentDate.getDate() + 1));
   }
 
-  // Process transaction data for the chart
+  // Log for debugging
+  console.log("Network transactions:", networkTransactions.length);
+  console.log("Selected network:", selectedNetwork);
+
+  // Process transaction data for the chart, using simpler date extraction
   const transactionsByDay = networkTransactions.reduce((acc: Record<string, number>, transaction) => {
-    const day = format(parseISO(transaction.timestamp), 'yyyy-MM-dd');
-    acc[day] = (acc[day] || 0) + 1;
+    // Extract just the date portion for grouping
+    const dateString = transaction.timestamp.split('T')[0];
+    acc[dateString] = (acc[dateString] || 0) + 1;
     return acc;
   }, {});
 
   // Process agent registration data for the chart
   const registrationsByDay = networkAgents.reduce((acc: Record<string, number>, agent) => {
-    const day = format(parseISO(agent.createdAt), 'yyyy-MM-dd');
-    acc[day] = (acc[day] || 0) + 1;
+    // Extract just the date portion for grouping
+    const dateString = agent.createdAt.split('T')[0];
+    acc[dateString] = (acc[dateString] || 0) + 1;
     return acc;
   }, {});
+
+  // Debug logs
+  console.log("Transactions by day:", transactionsByDay);
 
   // Create chart data arrays with zero values for missing dates
   const transactionChartData = dateRange.map(date => ({
