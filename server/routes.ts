@@ -102,11 +102,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           transactionId: "tx_preprod_001",
           transactionType: "API_CALL",
           network: "Preprod"
-        },
-        {
-          transactionId: "tx_mainnet_001",
-          transactionType: "ASSET_TRANSFER",
-          network: "Mainnet"
         }
       ];
 
@@ -116,20 +111,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: "GPT-4 Assistant",
           description: "Advanced language model for complex tasks",
           creatorName: "OpenAI",
+          createdAt: new Date(),
           metadata: {
             capabilities: ["text generation", "code analysis", "problem solving"],
             version: "4.0",
-            language: "en"
-          }
-        },
-        {
-          name: "Image Generator",
-          description: "AI model for creating images from text descriptions",
-          creatorName: "Midjourney",
-          metadata: {
-            capabilities: ["image generation", "style transfer"],
-            version: "3.0",
-            supported_formats: ["png", "jpg"]
+            language: "en",
+            network: "Preprod"
           }
         }
       ];
@@ -150,7 +137,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      //Insert sample agents
+      // Insert sample agents
       for (const agent of sampleAgents) {
         await storage.createAgent(agent);
       }
