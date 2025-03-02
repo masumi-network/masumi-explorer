@@ -59,10 +59,6 @@ export default function Home() {
     currentDate = new Date(currentDate.setDate(currentDate.getDate() + 1));
   }
 
-  // Log for debugging
-  console.log("Network transactions:", networkTransactions.length);
-  console.log("Selected network:", selectedNetwork);
-
   // Process transaction data for the chart, using simpler date extraction
   const transactionsByDay = networkTransactions.reduce((acc: Record<string, number>, transaction) => {
     // Extract just the date portion for grouping
@@ -78,9 +74,6 @@ export default function Home() {
     acc[dateString] = (acc[dateString] || 0) + 1;
     return acc;
   }, {});
-
-  // Debug logs
-  console.log("Transactions by day:", transactionsByDay);
 
   // Create chart data arrays with zero values for missing dates
   const transactionChartData = dateRange.map(date => ({
@@ -115,8 +108,8 @@ export default function Home() {
             <AreaChart data={transactionChartData}>
               <defs>
                 <linearGradient id="colorTransactions" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.2}/>
                 </linearGradient>
               </defs>
               <XAxis
@@ -141,9 +134,10 @@ export default function Home() {
               <Area
                 type="monotone"
                 dataKey="transactions"
-                stroke="hsl(var(--primary))"
-                strokeWidth={2}
+                stroke="#4f46e5"
+                strokeWidth={3}
                 fill="url(#colorTransactions)"
+                isAnimationActive={true}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -155,8 +149,8 @@ export default function Home() {
             <BarChart data={registrationChartData}>
               <defs>
                 <linearGradient id="colorRegistrations" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                  <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
+                  <stop offset="100%" stopColor="#10b981" stopOpacity={0.2}/>
                 </linearGradient>
               </defs>
               <XAxis
