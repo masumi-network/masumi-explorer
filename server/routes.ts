@@ -91,8 +91,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         {
           name: "Mainnet",
-          smartContractAddress: "addr1qx9xn6sz8r2z6kmwx5k8zxuvc2jh03n6wej6f8d",
-          policyId: "policy_mainnet_987654321",
+          smartContractAddress: "addr1wxlwhustapq9ck0zdz8dahhwd350nzlpg785nz7hs0tqjtgkvpk72",
+          policyId: "ec878babd6cbd840ae7745a74356b271a24a4391fd6a27e855572fc4",
         },
       ];
 
