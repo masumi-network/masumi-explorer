@@ -49,18 +49,12 @@ export class BlockfrostService {
 
   private async processAsset(asset: any) {
     try {
-      console.log(`\n[BlockfrostService][${this.config.network}] Processing asset:`, {
+      console.log(`[BlockfrostService][${this.config.network}] Processing asset:`, {
         asset_id: asset.asset,
         quantity: asset.quantity
       });
 
       const assetInfo = await this.client.assetsById(asset.asset);
-      console.log(`[BlockfrostService][${this.config.network}] Asset details:`, {
-        initial_mint_tx_hash: assetInfo.initial_mint_tx_hash,
-        onchain_metadata: assetInfo.onchain_metadata,
-        metadata: assetInfo.metadata
-      });
-
       if (!assetInfo.initial_mint_tx_hash) {
         console.error(`[BlockfrostService][${this.config.network}] No mint transaction hash found for asset:`, asset.asset);
         return null;
@@ -91,9 +85,8 @@ export class BlockfrostService {
           quantity: asset.quantity,
           onchainMetadata: assetInfo.onchain_metadata || {},
           mintTransaction: assetInfo.initial_mint_tx_hash,
-          capabilities: ["blockchain_interaction"],
-          originalMintDate: mintDate.toISOString(),
-          network: this.config.network // Ensure network is always set in metadata
+          network: this.config.network, // Explicitly set network in metadata
+          capabilities: ["blockchain_interaction"]
         },
         createdAt: mintDate
       };
@@ -162,7 +155,7 @@ export class BlockfrostService {
             const transaction = insertTransactionSchema.parse({
               transactionId: tx.tx_hash,
               transactionType: 'blockchain_tx',
-              network: this.config.network,
+              network: this.config.network, // Explicitly set network
               timestamp: new Date(tx.block_time * 1000).toISOString()
             });
             await storage.createTransaction(transaction);
