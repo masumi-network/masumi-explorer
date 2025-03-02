@@ -12,6 +12,11 @@ const PREPROD_CONFIG: BlockfrostConfig = {
   network: "preprod"
 };
 
+const MAINNET_CONFIG: BlockfrostConfig = {
+  projectId: "mainnetD813pPbW5SjD3oa6HbNVcy72eDJTsxgF",
+  network: "mainnet"
+};
+
 export class BlockfrostService {
   private client: BlockFrostAPI;
   private readonly config: BlockfrostConfig;
@@ -19,17 +24,17 @@ export class BlockfrostService {
   private readonly policyId: string;
 
   constructor(network: "preprod" | "mainnet") {
-    this.config = network === "preprod" ? PREPROD_CONFIG : null!;
+    this.config = network === "preprod" ? PREPROD_CONFIG : MAINNET_CONFIG;
     this.client = new BlockFrostAPI({
       projectId: this.config.projectId,
-      network: this.config.network === "preprod" ? "preprod" : "mainnet",
+      network: this.config.network
     });
     this.watchedAddress = network === "preprod"
       ? "addr_test1wzlwhustapq9ck0zdz8dahhwd350nzlpg785nz7hs0tqjtgdy4230"
-      : "";
+      : "addr1wxlwhustapq9ck0zdz8dahhwd350nzlpg785nz7hs0tqjtgkvpk72";
     this.policyId = network === "preprod"
       ? "0520e542b4704586b7899e8af207501fd1cfb4d12fc419ede7986de8"
-      : "";
+      : "ec878babd6cbd840ae7745a74356b271a24a4391fd6a27e855572fc4";
   }
 
   private decodeAssetName(assetNameHex: string): string {
