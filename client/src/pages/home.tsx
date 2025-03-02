@@ -108,8 +108,8 @@ export default function Home() {
             <AreaChart data={transactionChartData}>
               <defs>
                 <linearGradient id="colorTransactions" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.2}/>
+                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.2}/>
                 </linearGradient>
               </defs>
               <XAxis
@@ -134,7 +134,7 @@ export default function Home() {
               <Area
                 type="monotone"
                 dataKey="transactions"
-                stroke="#4f46e5"
+                stroke="#3B82F6"
                 strokeWidth={3}
                 fill="url(#colorTransactions)"
                 isAnimationActive={true}
@@ -149,8 +149,8 @@ export default function Home() {
             <BarChart data={registrationChartData}>
               <defs>
                 <linearGradient id="colorRegistrations" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
-                  <stop offset="100%" stopColor="#10b981" stopOpacity={0.2}/>
+                  <stop offset="0%" stopColor="#10B981" stopOpacity={0.8}/>
+                  <stop offset="100%" stopColor="#10B981" stopOpacity={0.2}/>
                 </linearGradient>
               </defs>
               <XAxis
