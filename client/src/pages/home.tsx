@@ -39,6 +39,10 @@ export default function Home() {
     queryKey: ["/api/agents", { network: selectedNetwork }],
   });
 
+  // Filter data by network
+  const networkTransactions = transactions.filter(tx => tx.network === selectedNetwork);
+  const networkAgents = agents.filter(agent => agent.metadata?.network === selectedNetwork);
+
   // Get the date range for the chart (from Feb 20th to now)
   const startDate = new Date('2025-02-20');
   const endDate = new Date();
@@ -51,14 +55,14 @@ export default function Home() {
   }
 
   // Process transaction data for the chart
-  const transactionsByDay = transactions.reduce((acc: Record<string, number>, transaction) => {
+  const transactionsByDay = networkTransactions.reduce((acc: Record<string, number>, transaction) => {
     const day = format(parseISO(transaction.timestamp), 'yyyy-MM-dd');
     acc[day] = (acc[day] || 0) + 1;
     return acc;
   }, {});
 
   // Process agent registration data for the chart
-  const registrationsByDay = agents.reduce((acc: Record<string, number>, agent) => {
+  const registrationsByDay = networkAgents.reduce((acc: Record<string, number>, agent) => {
     const day = format(parseISO(agent.createdAt), 'yyyy-MM-dd');
     acc[day] = (acc[day] || 0) + 1;
     return acc;
@@ -94,11 +98,11 @@ export default function Home() {
       <div className="grid md:grid-cols-2 gap-6">
         <Card className="p-6">
           <h3 className="text-lg font-medium text-muted-foreground mb-2">Total Agents</h3>
-          <p className="text-3xl font-bold">{agents.length}</p>
+          <p className="text-3xl font-bold">{networkAgents.length}</p>
         </Card>
         <Card className="p-6">
           <h3 className="text-lg font-medium text-muted-foreground mb-2">Total Transactions</h3>
-          <p className="text-3xl font-bold">{transactions.length}</p>
+          <p className="text-3xl font-bold">{networkTransactions.length}</p>
         </Card>
       </div>
 
