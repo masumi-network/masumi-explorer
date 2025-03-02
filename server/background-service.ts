@@ -8,15 +8,20 @@ export function startBackgroundServices() {
   async function fetchData() {
     console.log("[Background Service] Starting blockchain data fetch...");
     try {
+      // First fetch preprod data
+      console.log("[Background Service] Fetching Preprod network data...");
       await Promise.all([
-        // Preprod network
         preprodService.fetchLatestTransactions().catch(error => {
           console.error("[Background Service] Error fetching preprod transactions:", error);
         }),
         preprodService.fetchLatestAssets().catch(error => {
           console.error("[Background Service] Error fetching preprod assets:", error);
-        }),
-        // Mainnet network
+        })
+      ]);
+
+      // Then fetch mainnet data
+      console.log("[Background Service] Fetching Mainnet network data...");
+      await Promise.all([
         mainnetService.fetchLatestTransactions().catch(error => {
           console.error("[Background Service] Error fetching mainnet transactions:", error);
         }),
@@ -24,14 +29,15 @@ export function startBackgroundServices() {
           console.error("[Background Service] Error fetching mainnet assets:", error);
         })
       ]);
+
       console.log("[Background Service] Completed blockchain data fetch");
     } catch (error) {
       console.error("[Background Service] Error in scheduled blockchain data fetch:", error);
     }
   }
 
-  // Schedule data fetch every 15 minutes
-  cron.schedule("*/15 * * * *", fetchData);
+  // Schedule data fetch every 5 minutes
+  cron.schedule("*/5 * * * *", fetchData);
 
   // Initial fetch on startup
   console.log("[Background Service] Running initial data fetch...");
