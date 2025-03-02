@@ -10,14 +10,16 @@ interface Transaction {
   transactionId: string;
   timestamp: string;
   transactionType: string;
+  network: string;
 }
 
 export default function Transactions() {
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
+  const [selectedNetwork, setSelectedNetwork] = useState("Preprod");
 
   const { data: transactions = [] } = useQuery<Transaction[]>({
-    queryKey: ["/api/transactions"],
+    queryKey: ["/api/transactions", { network: selectedNetwork }],
   });
 
   const totalPages = Math.ceil(transactions.length / itemsPerPage);
