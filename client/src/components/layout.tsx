@@ -8,7 +8,7 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface LayoutProps {
@@ -28,6 +28,7 @@ interface Transaction {
   transactionId: string;
   transactionType: string;
   timestamp: string;
+  network: string; // Added network field
 }
 
 interface NetworkConfig {
@@ -37,13 +38,22 @@ interface NetworkConfig {
 }
 
 export function Layout({ children }: LayoutProps) {
+  const queryClient = useQueryClient(); // Added useQueryClient hook
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState("Preprod");
 
+  // Update queryClient on network change
+  const handleNetworkChange = (network: string) => {
+    setSelectedNetwork(network);
+    // Invalidate relevant queries to refetch with new network
+    queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/agents"] });
+  };
+
   const { data: agents = [] } = useQuery<Agent[]>({
-    queryKey: ["/api/agents"],
+    queryKey: ["/api/agents", { network: selectedNetwork }],
   });
 
   const { data: transactions = [] } = useQuery<Transaction[]>({
@@ -115,7 +125,7 @@ export function Layout({ children }: LayoutProps) {
             <div className="flex items-center gap-3">
               <Select 
                 value={selectedNetwork} 
-                onValueChange={setSelectedNetwork}
+                onValueChange={handleNetworkChange}
                 defaultValue="Preprod"
               >
                 <SelectTrigger className="w-[180px] h-9 bg-background/50 border-border/40">
@@ -188,15 +198,6 @@ export function Layout({ children }: LayoutProps) {
                             <div className="p-2 hover:bg-muted/50 rounded-md cursor-pointer transition-colors">
                               <p className="font-medium">{agent.name}</p>
                               <p className="text-sm text-muted-foreground truncate">{agent.description}</p>
-                              {agent.metadata?.capabilities && (
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {(agent.metadata.capabilities as string[]).map((cap, idx) => (
-                                    <span key={idx} className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs">
-                                      {cap}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
                             </div>
                           </Link>
                         ))}

@@ -44,9 +44,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/agents", async (_req, res) => {
+  app.get("/api/agents", async (req, res) => {
     try {
-      const agents = await storage.listAgents();
+      const network = req.query.network as string | undefined;
+      const agents = await storage.listAgents(network);
       res.json(agents);
     } catch (error) {
       res.status(500).json({ error: "Internal server error" });
