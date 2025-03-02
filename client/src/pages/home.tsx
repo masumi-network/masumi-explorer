@@ -15,12 +15,15 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Transaction {
+  id: number;
+  transactionId: string;
   timestamp: string;
   transactionType: string;
   network: string;
 }
 
 interface Agent {
+  id: number;
   name: string;
   createdAt: string;
   metadata: {
@@ -68,7 +71,7 @@ export default function Home() {
     return acc;
   }, {});
 
-  // Create chart data arrays
+  // Create chart data arrays with zero values for missing dates
   const transactionChartData = dateRange.map(date => ({
     date,
     transactions: transactionsByDay[date] || 0,
