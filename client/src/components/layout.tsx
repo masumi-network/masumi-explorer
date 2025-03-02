@@ -101,11 +101,13 @@ export function Layout({ children }: LayoutProps) {
                 </SheetContent>
               </Sheet>
               <h1 className="text-xl font-semibold tracking-tight">
-                <img 
-                  src="/masumi_logo_white.png" 
-                  alt="Masumi" 
-                  className="h-8"
-                />
+                <Link href="/">
+                  <img 
+                    src="/masumi_logo_white.png" 
+                    alt="Masumi" 
+                    className="h-8"
+                  />
+                </Link>
               </h1>
             </div>
 
