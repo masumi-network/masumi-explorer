@@ -127,11 +127,6 @@ export function Layout({ children }: LayoutProps) {
                   ))}
                 </SelectContent>
               </Select>
-              {currentConfig && (
-                <div className="hidden lg:block text-sm text-muted-foreground">
-                  <span className="font-mono">{currentConfig.smartContractAddress.slice(0, 8)}...</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
