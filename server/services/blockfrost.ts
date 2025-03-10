@@ -33,11 +33,11 @@ export class BlockfrostService {
     // Standardize network names to match UI
     this.networkName = network === "preprod" ? "Preprod" : "Mainnet";
     this.watchedAddress = network === "preprod"
-      ? "addr_test1wzlwhustapq9ck0zdz8dahhwd350nzlpg785nz7hs0tqjtgdy4230"
-      : "addr1wxlwhustapq9ck0zdz8dahhwd350nzlpg785nz7hs0tqjtgkvpk72";
+      ? "addr_test1wq6r27mhqc754xelkw294dd20g4989r3r6ah23328w327gssudk7y"
+      : "addr1wy6r27mhqc754xelkw294dd20g4989r3r6ah23328w327gst5e23p";
     this.policyId = network === "preprod"
-      ? "0520e542b4704586b7899e8af207501fd1cfb4d12fc419ede7986de8"
-      : "ec878babd6cbd840ae7745a74356b271a24a4391fd6a27e855572fc4";
+      ? "da1995c45c5fe0f32cf609fb073e6ee7d213ba42a3457fc2f6093508"
+      : "05f6641139953b326b3f10c7df2bfa5bd6399e401e4256ccae0e8d0e";
   }
 
   private decodeAssetName(assetNameHex: string): string {
