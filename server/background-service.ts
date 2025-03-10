@@ -6,11 +6,12 @@ export function startBackgroundServices() {
   const mainnetService = new BlockfrostService("mainnet");
 
   async function fetchData() {
-    console.log("[Background Service] Starting blockchain data fetch...");
+    const startTime = new Date().toISOString();
+    console.log(`[Background Service] Starting blockchain data fetch at ${startTime}`);
 
     try {
       // Fetch Preprod network data
-      console.log("[Background Service] Fetching Preprod network data...");
+      console.log(`[Background Service][${startTime}] Fetching Preprod network data...`);
       await preprodService.fetchLatestTransactions().catch(error => {
         console.error("[Background Service] Error fetching preprod transactions:", error);
       });
@@ -19,10 +20,10 @@ export function startBackgroundServices() {
         console.error("[Background Service] Error fetching preprod assets:", error);
       });
 
-      console.log("[Background Service] Completed Preprod data fetch");
+      console.log(`[Background Service][${startTime}] Completed Preprod data fetch`);
 
       // Fetch Mainnet network data
-      console.log("[Background Service] Fetching Mainnet network data...");
+      console.log(`[Background Service][${startTime}] Fetching Mainnet network data...`);
       await mainnetService.fetchLatestTransactions().catch(error => {
         console.error("[Background Service] Error fetching mainnet transactions:", error);
       });
@@ -31,14 +32,24 @@ export function startBackgroundServices() {
         console.error("[Background Service] Error fetching mainnet assets:", error);
       });
 
-      console.log("[Background Service] Completed Mainnet data fetch");
+      console.log(`[Background Service][${startTime}] Completed Mainnet data fetch`);
     } catch (error) {
-      console.error("[Background Service] Error in blockchain data fetch:", error);
+      console.error(`[Background Service][${startTime}] Error in blockchain data fetch:`, error);
     }
+
+    const endTime = new Date().toISOString();
+    console.log(`[Background Service] Completed blockchain data fetch at ${endTime}`);
   }
 
-  // Schedule data fetch every 5 minutes
-  cron.schedule("*/5 * * * *", fetchData);
+  // Schedule data fetch every 5 minutes and log the schedule
+  console.log("[Background Service] Setting up cron job to run every 5 minutes");
+  const job = cron.schedule("*/5 * * * *", () => {
+    fetchData().catch(console.error);
+  });
+
+  // Ensure the job is started
+  job.start();
+  console.log("[Background Service] Cron job started successfully");
 
   // Run initial fetch immediately on startup
   console.log("[Background Service] Running initial data fetch...");
