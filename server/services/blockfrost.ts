@@ -22,7 +22,7 @@ export class BlockfrostService {
   private readonly config: BlockfrostConfig;
   private readonly watchedAddress: string;
   private readonly policyId: string;
-  private readonly networkName: string; // Add explicit network name
+  private readonly networkName: string;
 
   constructor(network: "preprod" | "mainnet") {
     this.config = network === "preprod" ? PREPROD_CONFIG : MAINNET_CONFIG;
@@ -33,10 +33,10 @@ export class BlockfrostService {
     // Standardize network names to match UI
     this.networkName = network === "preprod" ? "Preprod" : "Mainnet";
     this.watchedAddress = network === "preprod"
-      ? "addr_test1wq6r27mhqc754xelkw294dd20g4989r3r6ah23328w327gssudk7y"
+      ? "addr_test1wp7je4555s7cdqvlcgdnkj34rrpryy8wsst9yvz7e74p2ugy69qgn"
       : "addr1wy6r27mhqc754xelkw294dd20g4989r3r6ah23328w327gst5e23p";
     this.policyId = network === "preprod"
-      ? "da1995c45c5fe0f32cf609fb073e6ee7d213ba42a3457fc2f6093508"
+      ? "e6c57104dfa95943ffab95eafe1f12ed9a8da791678bfbf765b05649"
       : "05f6641139953b326b3f10c7df2bfa5bd6399e401e4256ccae0e8d0e";
   }
 
@@ -88,7 +88,7 @@ export class BlockfrostService {
           quantity: asset.quantity,
           onchainMetadata: assetInfo.onchain_metadata || {},
           mintTransaction: assetInfo.initial_mint_tx_hash,
-          network: this.networkName, // Use standardized network name
+          network: this.networkName,
           capabilities: ["blockchain_interaction"]
         },
         createdAt: mintDate
@@ -168,8 +168,8 @@ export class BlockfrostService {
             const transaction = insertTransactionSchema.parse({
               transactionId: tx.tx_hash,
               transactionType: 'blockchain_tx',
-              network: this.networkName, // Use standardized network name
-              timestamp: demoDate.toISOString() // Use demo date for now
+              network: this.networkName,
+              timestamp: demoDate.toISOString()
             });
             await storage.createTransaction(transaction);
             console.log(`[BlockfrostService][${this.networkName}] Created new transaction: ${tx.tx_hash}`);
