@@ -23,10 +23,10 @@ export default function Agents() {
     queryKey: ["/api/agents", { network: selectedNetwork }],
   });
 
-  // Filter agents by the selected network
-  const networkAgents = agents.filter(agent => 
-    agent.metadata?.network === selectedNetwork
-  );
+  // Filter agents by the selected network and sort by createdAt in descending order
+  const networkAgents = agents
+    .filter(agent => agent.metadata?.network === selectedNetwork)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const totalPages = Math.ceil(networkAgents.length / itemsPerPage);
   const startIndex = (page - 1) * itemsPerPage;
