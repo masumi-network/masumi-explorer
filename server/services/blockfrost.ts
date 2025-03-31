@@ -33,10 +33,10 @@ export class BlockfrostService {
     // Standardize network names to match UI
     this.networkName = network === "preprod" ? "Preprod" : "Mainnet";
     this.watchedAddress = network === "preprod"
-      ? "addr_test1wp7je4555s7cdqvlcgdnkj34rrpryy8wsst9yvz7e74p2ugy69qgn"
+      ? "addr_test1wq6dsag9kyawzacd6wdnnkjapdc4g3eflth445uqgvsnqngdnhglp"
       : "addr1wy6r27mhqc754xelkw294dd20g4989r3r6ah23328w327gst5e23p";
     this.policyId = network === "preprod"
-      ? "e6c57104dfa95943ffab95eafe1f12ed9a8da791678bfbf765b05649"
+      ? "0b3b0cabb905e22826890c5119305d36f831906b57a8e28d480015ad"
       : "05f6641139953b326b3f10c7df2bfa5bd6399e401e4256ccae0e8d0e";
   }
 
@@ -73,20 +73,30 @@ export class BlockfrostService {
       const assetNameHex = asset.asset.slice(this.policyId.length);
       const agentName = this.decodeAssetName(assetNameHex);
 
+      // Cast metadata to any type to avoid TypeScript errors
+      const metadata = assetInfo.onchain_metadata as any;
+      let creatorName = "Blockchain";
+      
+      if (metadata?.author) {
+        if (Array.isArray(metadata.author.name)) {
+          creatorName = metadata.author.name[0];
+        } else if (typeof metadata.author.name === 'string') {
+          creatorName = metadata.author.name;
+        }
+      }
+
       const insertData = {
-        name: Array.isArray(assetInfo.onchain_metadata?.name)
-          ? assetInfo.onchain_metadata.name[0]
-          : agentName,
-        description: Array.isArray(assetInfo.onchain_metadata?.description)
-          ? assetInfo.onchain_metadata.description[0]
-          : (assetInfo.onchain_metadata?.description || `Asset ${asset.asset.slice(0, 8)}`),
-        creatorName: Array.isArray(assetInfo.onchain_metadata?.author?.name)
-          ? assetInfo.onchain_metadata.author.name[0]
-          : "Blockchain",
+        name: Array.isArray(metadata?.name) 
+          ? metadata.name[0] 
+          : (typeof metadata?.name === 'string' ? metadata.name : agentName),
+        description: Array.isArray(metadata?.description)
+          ? metadata.description[0]
+          : (typeof metadata?.description === 'string' ? metadata.description : `Asset ${asset.asset.slice(0, 8)}`),
+        creatorName,
         metadata: {
           assetId: asset.asset,
           quantity: asset.quantity,
-          onchainMetadata: assetInfo.onchain_metadata || {},
+          onchainMetadata: metadata || {},
           mintTransaction: assetInfo.initial_mint_tx_hash,
           network: this.networkName,
           capabilities: ["blockchain_interaction"]
@@ -159,17 +169,12 @@ export class BlockfrostService {
             const txDetail = await this.client.txs(tx.tx_hash);
             const blockchainTimestamp = new Date(txDetail.block_time * 1000);
 
-            // Use a more distributed date for demonstration purposes in development
-            // In production, we'd use the actual blockchain timestamp
-            const demoDate = new Date();
-            // Subtract a random number of days (0-6) for demonstration
-            demoDate.setDate(demoDate.getDate() - Math.floor(Math.random() * 7));
-
+            // Use the actual blockchain timestamp
             const transaction = insertTransactionSchema.parse({
               transactionId: tx.tx_hash,
               transactionType: 'blockchain_tx',
               network: this.networkName,
-              timestamp: demoDate.toISOString()
+              timestamp: blockchainTimestamp.toISOString()
             });
             await storage.createTransaction(transaction);
             console.log(`[BlockfrostService][${this.networkName}] Created new transaction: ${tx.tx_hash}`);
