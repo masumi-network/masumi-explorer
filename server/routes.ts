@@ -86,8 +86,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const networkConfigs = [
         {
           name: "Preprod",
-          smartContractAddress: "addr_test1wp7je4555s7cdqvlcgdnkj34rrpryy8wsst9yvz7e74p2ugy69qgn",
-          policyId: "e6c57104dfa95943ffab95eafe1f12ed9a8da791678bfbf765b05649",
+          smartContractAddress: "addr_test1wq6dsag9kyawzacd6wdnnkjapdc4g3eflth445uqgvsnqngdnhglp",
+          policyId: "0b3b0cabb905e22826890c5119305d36f831906b57a8e28d480015ad",
         },
         {
           name: "Mainnet",
