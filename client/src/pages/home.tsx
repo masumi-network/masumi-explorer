@@ -126,7 +126,7 @@ export default function Home() {
         variant={selectedRange === "week" ? "default" : "outline"}
         size="sm"
         onClick={() => onChange("week")}
-        className="rounded-r-none"
+        className="text-xs h-7 rounded-r-none"
       >
         Week
       </Button>
@@ -134,7 +134,7 @@ export default function Home() {
         variant={selectedRange === "month" ? "default" : "outline"}
         size="sm"
         onClick={() => onChange("month")}
-        className="rounded-none border-x-0"
+        className="text-xs h-7 rounded-none border-x-0"
       >
         Month
       </Button>
@@ -142,7 +142,7 @@ export default function Home() {
         variant={selectedRange === "year" ? "default" : "outline"}
         size="sm"
         onClick={() => onChange("year")}
-        className="rounded-none border-r-0"
+        className="text-xs h-7 rounded-none border-r-0"
       >
         Year
       </Button>
@@ -150,7 +150,7 @@ export default function Home() {
         variant={selectedRange === "all" ? "default" : "outline"}
         size="sm"
         onClick={() => onChange("all")}
-        className="rounded-l-none"
+        className="text-xs h-7 rounded-l-none"
       >
         All
       </Button>
@@ -164,18 +164,18 @@ export default function Home() {
       {/* Summary Cards */}
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2 pt-6 px-6">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Agents</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0 px-6 pb-6">
             <p className="text-3xl font-bold">{networkAgents.length}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2 pt-6 px-6">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Transactions</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0 px-6 pb-6">
             <p className="text-3xl font-bold">{networkTransactions.length}</p>
           </CardContent>
         </Card>
@@ -184,13 +184,11 @@ export default function Home() {
       {/* Charts Grid */}
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-center">
-              <CardTitle>Daily Transactions</CardTitle>
-              <TimeRangeSelector selectedRange={txTimeRange} onChange={setTxTimeRange} />
-            </div>
+          <CardHeader className="pb-1 pt-6 px-6 flex flex-row justify-between items-center">
+            <CardTitle>Daily Transactions</CardTitle>
+            <TimeRangeSelector selectedRange={txTimeRange} onChange={setTxTimeRange} />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6 pt-0 pb-6">
             <ResponsiveContainer width="100%" height={350}>
               <AreaChart data={transactionChartData}>
                 <defs>
@@ -226,7 +224,7 @@ export default function Home() {
                   type="monotone"
                   dataKey="value"
                   stroke="#3B82F6"
-                  strokeWidth={3}
+                  strokeWidth={2}
                   fill="url(#colorTransactions)"
                   isAnimationActive={true}
                 />
@@ -236,13 +234,11 @@ export default function Home() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-center">
-              <CardTitle>Agent Registrations</CardTitle>
-              <TimeRangeSelector selectedRange={agentTimeRange} onChange={setAgentTimeRange} />
-            </div>
+          <CardHeader className="pb-1 pt-6 px-6 flex flex-row justify-between items-center">
+            <CardTitle>Agent Registrations</CardTitle>
+            <TimeRangeSelector selectedRange={agentTimeRange} onChange={setAgentTimeRange} />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6 pt-0 pb-6">
             <ResponsiveContainer width="100%" height={350}>
               <BarChart data={registrationChartData}>
                 <defs>
