@@ -15,6 +15,7 @@ import {
   Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -113,49 +114,35 @@ export default function Home() {
   const transactionChartData = getDateRangeData(txTimeRange, transactionsByDay);
   const registrationChartData = getDateRangeData(agentTimeRange, registrationsByDay);
 
-  // Time range selector component
+  // Time range selector component using Select, similar to network selection
   const TimeRangeSelector = ({ 
     selectedRange, 
     onChange 
   }: { 
     selectedRange: TimeRange, 
     onChange: (range: TimeRange) => void 
-  }) => (
-    <div className="flex items-center space-x-1">
-      <Button
-        variant={selectedRange === "week" ? "default" : "outline"}
-        size="sm"
-        onClick={() => onChange("week")}
-        className="text-xs h-7 rounded-r-none"
-      >
-        Week
-      </Button>
-      <Button
-        variant={selectedRange === "month" ? "default" : "outline"}
-        size="sm"
-        onClick={() => onChange("month")}
-        className="text-xs h-7 rounded-none border-x-0"
-      >
-        Month
-      </Button>
-      <Button
-        variant={selectedRange === "year" ? "default" : "outline"}
-        size="sm"
-        onClick={() => onChange("year")}
-        className="text-xs h-7 rounded-none border-r-0"
-      >
-        Year
-      </Button>
-      <Button
-        variant={selectedRange === "all" ? "default" : "outline"}
-        size="sm"
-        onClick={() => onChange("all")}
-        className="text-xs h-7 rounded-l-none"
-      >
-        All
-      </Button>
-    </div>
-  );
+  }) => {
+    const timeRangeLabels: Record<TimeRange, string> = {
+      week: "Last Week",
+      month: "Last Month",
+      year: "Last Year", 
+      all: "All Time"
+    };
+
+    return (
+      <Select value={selectedRange} onValueChange={onChange}>
+        <SelectTrigger className="w-[130px] h-9 bg-background/50 border-border/40">
+          <SelectValue placeholder="Select range" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="week">{timeRangeLabels.week}</SelectItem>
+          <SelectItem value="month">{timeRangeLabels.month}</SelectItem>
+          <SelectItem value="year">{timeRangeLabels.year}</SelectItem>
+          <SelectItem value="all">{timeRangeLabels.all}</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+  };
 
   return (
     <div className="space-y-8">
