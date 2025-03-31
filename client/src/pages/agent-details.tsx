@@ -5,9 +5,11 @@ import { useNetwork } from "@/components/layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CalendarIcon, UserIcon, TagIcon, FileTextIcon, Globe } from "lucide-react";
+import { ArrowLeft, CalendarIcon, UserIcon, TagIcon, FileTextIcon, Globe, Copy, Check } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Agent {
   id: number;
@@ -23,6 +25,8 @@ export default function AgentDetails() {
   const [, navigate] = useLocation();
   const { selectedNetwork } = useNetwork();
   const agentId = parseInt(id);
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
 
   const { data: agent, isLoading, error } = useQuery<Agent>({
     queryKey: [`/api/agents/${agentId}`],
@@ -110,7 +114,34 @@ export default function AgentDetails() {
                 <div className="flex items-center text-sm">
                   <TagIcon className="h-4 w-4 mr-2 text-muted-foreground" />
                   <span className="text-muted-foreground mr-2">Asset ID:</span>
-                  <span className="font-mono">{agent.metadata.assetId}</span>
+                  <div className="flex items-center">
+                    <span className="font-mono truncate max-w-[180px] md:max-w-[250px] lg:max-w-[350px]" title={agent.metadata.assetId}>
+                      {agent.metadata.assetId.length > 24 
+                        ? `${agent.metadata.assetId.substring(0, 12)}...${agent.metadata.assetId.substring(agent.metadata.assetId.length - 12)}`
+                        : agent.metadata.assetId}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 ml-2"
+                      onClick={() => {
+                        navigator.clipboard.writeText(agent.metadata.assetId);
+                        setCopied(true);
+                        toast({
+                          title: "Copied!",
+                          description: "Asset ID copied to clipboard",
+                          duration: 2000,
+                        });
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                    >
+                      {copied ? (
+                        <Check className="h-3.5 w-3.5 text-green-500" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               )}
 
