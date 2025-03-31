@@ -4,6 +4,8 @@ import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useNetwork } from "@/components/layout";
+import { useLocation } from "wouter";
+import { ChevronRight } from "lucide-react";
 
 interface Agent {
   id: number;
@@ -18,6 +20,7 @@ export default function Agents() {
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
   const { selectedNetwork } = useNetwork();
+  const [, navigate] = useLocation();
 
   const { data: agents = [] } = useQuery<Agent[]>({
     queryKey: ["/api/agents", { network: selectedNetwork }],
@@ -45,11 +48,16 @@ export default function Agents() {
               <TableHead className="w-[140px]">Timestamp</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {currentPageAgents.map((agent) => (
-              <TableRow key={agent.id} className="hover:bg-muted/5">
+              <TableRow 
+                key={agent.id} 
+                className="hover:bg-muted/5 cursor-pointer"
+                onClick={() => navigate(`/agents/${agent.id}`)}
+              >
                 <TableCell className="font-mono text-xs text-muted-foreground">
                   {format(parseISO(agent.createdAt), "MM-dd-yyyy\nHH:mm:ss")}
                 </TableCell>
@@ -63,6 +71,19 @@ export default function Agents() {
                   <div className="max-w-[500px] truncate text-sm">
                     {agent.description}
                   </div>
+                </TableCell>
+                <TableCell>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/agents/${agent.id}`);
+                    }}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
