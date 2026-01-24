@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Agents from "@/pages/agents";
+import AgentDetails from "@/pages/agent-details";
 import Transactions from "@/pages/transactions";
 import { Layout } from "@/components/layout";
 
@@ -14,6 +15,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/agents" component={Agents} />
+        <Route path="/agents/:id" component={AgentDetails} />
         <Route path="/transactions" component={Transactions} />
         <Route component={NotFound} />
       </Switch>

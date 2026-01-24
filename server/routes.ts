@@ -54,6 +54,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/agents/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ error: "Invalid agent ID" });
+        return;
+      }
+      
+      const agent = await storage.getAgent(id);
+      if (!agent) {
+        res.status(404).json({ error: "Agent not found" });
+        return;
+      }
+      
+      res.json(agent);
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Transactions endpoints
   app.post("/api/transactions", async (req, res) => {
     try {
@@ -86,8 +106,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const networkConfigs = [
         {
           name: "Preprod",
-          smartContractAddress: "addr_test1wq6r27mhqc754xelkw294dd20g4989r3r6ah23328w327gssudk7y",
-          policyId: "da1995c45c5fe0f32cf609fb073e6ee7d213ba42a3457fc2f6093508",
+          smartContractAddress: "addr_test1wq6dsag9kyawzacd6wdnnkjapdc4g3eflth445uqgvsnqngdnhglp",
+          policyId: "0b3b0cabb905e22826890c5119305d36f831906b57a8e28d480015ad",
         },
         {
           name: "Mainnet",
